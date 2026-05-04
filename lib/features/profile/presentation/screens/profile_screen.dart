@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reportes_ai/app/router/app_router.dart';
 import 'package:reportes_ai/app/theme/app_colors.dart';
+import 'package:reportes_ai/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:reportes_ai/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:reportes_ai/shared/widgets/shared_widgets.dart';
 import 'package:reportes_ai/state/report_provider.dart';
@@ -87,7 +88,10 @@ class ProfileScreen extends ConsumerWidget {
                     MenuItem(
                       icon: Icons.notifications_none_rounded,
                       label: 'Notificaciones',
-                      onTap: () {},
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                      ),
                     ),
                     MenuItem(
                       icon: Icons.shield_outlined,
