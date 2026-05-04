@@ -6,7 +6,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:reportes_ai/app/theme/app_colors.dart';
+import 'package:reportes_ai/core/services/ai_service.dart';
 import 'package:reportes_ai/core/services/location_service.dart';
+import 'package:reportes_ai/data/models/ai_classification.dart';
+import 'package:reportes_ai/shared/widgets/ai_classification_card.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
 import 'package:reportes_ai/shared/widgets/vial_card.dart';
@@ -27,10 +30,13 @@ class _CreateWrittenReportScreenState
 
   final LocationService _locationService = LocationService();
   final ImagePicker _imagePicker = ImagePicker();
+  final AiService _aiService = AiService();
 
   bool _isLoading = false;
   bool _isGettingLocation = false;
   bool _isPickingImage = false;
+  bool _isAnalyzing = false;
+  AiClassification? _aiResult;
 
   String _selectedCategory = 'Accidente';
   String _selectedSeverity = 'Moderado';
@@ -170,6 +176,42 @@ class _CreateWrittenReportScreenState
     );
   }
 
+  Future<void> _analyzeWithAi() async {
+    final text = _descriptionController.text.trim();
+    if (text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Escribe una descripción primero')),
+      );
+      return;
+    }
+    setState(() {
+      _isAnalyzing = true;
+      _aiResult = null;
+    });
+    try {
+      final result = await _aiService.classifyReport(
+        description: text,
+        locationLabel: _locationLabel,
+      );
+      if (!mounted) return;
+      setState(() {
+        _aiResult = result;
+        // Auto-apply category when confidence is high
+        if (result.confidence > 0.7 &&
+            _categories.containsKey(result.suggestedCategory)) {
+          _selectedCategory = result.suggestedCategory;
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error IA: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isAnalyzing = false);
+    }
+  }
+
   Future<void> _submitReport() async {
     final session = ref.read(sessionProvider);
     final userId = session.userId;
@@ -191,17 +233,54 @@ class _CreateWrittenReportScreenState
     setState(() => _isLoading = true);
 
     try {
+      final description = _descriptionController.text.trim();
       final generatedTitle = '$_selectedCategory - $_selectedSeverity';
-      
+
+      // Run AI pipeline (non-blocking: failures are silently skipped)
+      AiClassification? aiResult = _aiResult;
+      double credibilityScore = 1.0;
+      double priorityScore = 0.5;
+
+      try {
+        if (aiResult == null && description.isNotEmpty) {
+          aiResult = await _aiService.classifyReport(
+            description: description,
+            locationLabel: _locationLabel,
+          );
+          if (mounted) setState(() => _aiResult = aiResult);
+        }
+
+        if (aiResult != null) {
+          credibilityScore = await _aiService.getCredibilityScore(
+            userId: userId,
+            description: description,
+            latitude: _currentPosition!.latitude,
+            longitude: _currentPosition!.longitude,
+          );
+          priorityScore = await _aiService.getPriorityScore(
+            classification: aiResult,
+            credibilityScore: credibilityScore,
+          );
+        }
+      } catch (_) {
+        // AI is optional — save report without AI fields on failure
+      }
+
       await ref.read(reportRepositoryProvider).createReport(
             userId: userId,
             title: generatedTitle,
-            description: _descriptionController.text.trim(),
+            description: description,
             category: _selectedCategory,
             locationLabel: _locationLabel,
             latitude: _currentPosition?.latitude,
             longitude: _currentPosition?.longitude,
             imagePaths: _imagePath != null ? [_imagePath!] : const [],
+            aiCategory: aiResult?.rawAiCategory.isNotEmpty == true
+                ? aiResult!.rawAiCategory
+                : null,
+            aiConfidence: aiResult?.confidence,
+            priorityScore: priorityScore,
+            credibilityScore: credibilityScore,
           );
 
       refreshReports(ref);
@@ -441,13 +520,50 @@ class _CreateWrittenReportScreenState
               ),
               const SizedBox(height: 24),
 
-              // 4. Description Input
+              // 4. Description Input + AI Analysis
               VialCard(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Descripción (Opcional)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text('Descripción (Opcional)',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                        ),
+                        if (_isAnalyzing)
+                          const SizedBox(
+                            width: 18, height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        else
+                          GestureDetector(
+                            onTap: _analyzeWithAi,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withAlpha(15),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: AppColors.primary.withAlpha(60)),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.auto_awesome_rounded,
+                                      size: 13, color: AppColors.primary),
+                                  SizedBox(width: 4),
+                                  Text('Analizar con IA',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.w600)),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 16),
                     Container(
                       decoration: BoxDecoration(
@@ -457,6 +573,9 @@ class _CreateWrittenReportScreenState
                       child: TextField(
                         controller: _descriptionController,
                         maxLines: 3,
+                        onChanged: (_) {
+                          if (_aiResult != null) setState(() => _aiResult = null);
+                        },
                         decoration: const InputDecoration(
                           hintText: 'Añade detalles relevantes sobre el incidente...',
                           hintStyle: TextStyle(color: AppColors.outline, fontSize: 14),
@@ -466,6 +585,16 @@ class _CreateWrittenReportScreenState
                         style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
                       ),
                     ),
+                    if (_aiResult != null) ...[
+                      const SizedBox(height: 16),
+                      AiClassificationCard(
+                        classification: _aiResult!,
+                        onAcceptCategory: () => setState(
+                            () => _selectedCategory = _aiResult!.suggestedCategory),
+                        onAcceptSeverity: () => setState(
+                            () => _selectedSeverity = _aiResult!.suggestedSeverity),
+                      ),
+                    ],
                   ],
                 ),
               ),

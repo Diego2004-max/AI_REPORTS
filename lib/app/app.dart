@@ -15,9 +15,10 @@ class AiReportsApp extends ConsumerWidget {
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'AI Reports',
+      title: 'Reportes AI',
       routerConfig: router,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
     );
   }

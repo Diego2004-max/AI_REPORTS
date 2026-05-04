@@ -12,6 +12,10 @@ class ReportModel {
   final double? longitude;
   final List<String> imagePaths;
   final String? audioPath;
+  final String? aiCategory;
+  final double? aiConfidence;
+  final double? priorityScore;
+  final double? credibilityScore;
 
   const ReportModel({
     required this.id,
@@ -27,6 +31,10 @@ class ReportModel {
     this.longitude,
     this.imagePaths = const [],
     this.audioPath,
+    this.aiCategory,
+    this.aiConfidence,
+    this.priorityScore,
+    this.credibilityScore,
   });
 
   Map<String, dynamic> toMap() {
@@ -44,6 +52,10 @@ class ReportModel {
       'longitude': longitude,
       'imagePaths': imagePaths,
       'audioPath': audioPath,
+      'aiCategory': aiCategory,
+      'aiConfidence': aiConfidence,
+      'priorityScore': priorityScore,
+      'credibilityScore': credibilityScore,
     };
   }
 
@@ -68,6 +80,14 @@ class ReportModel {
       imagePaths: (map['imagePaths'] as List?)?.cast<String>() ??
           (imageUrl != null && imageUrl.isNotEmpty ? [imageUrl] : const []),
       audioPath: (map['audioPath'] ?? map['audio_url']) as String?,
+      aiCategory: (map['aiCategory'] ?? map['ai_category']) as String?,
+      aiConfidence:
+          ((map['aiConfidence'] ?? map['ai_confidence']) as num?)?.toDouble(),
+      priorityScore:
+          ((map['priorityScore'] ?? map['priority_score']) as num?)?.toDouble(),
+      credibilityScore:
+          ((map['credibilityScore'] ?? map['credibility_score']) as num?)
+              ?.toDouble(),
     );
   }
 }

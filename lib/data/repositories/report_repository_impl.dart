@@ -22,6 +22,10 @@ class ReportRepositoryImpl {
     double? longitude,
     List<String> imagePaths = const [],
     String? audioPath,
+    String? aiCategory,
+    double? aiConfidence,
+    double? priorityScore,
+    double? credibilityScore,
   }) async {
     final cleanDescription = description.trim();
     final cleanTitle = title.trim().isEmpty
@@ -44,6 +48,10 @@ class ReportRepositoryImpl {
           'image_url': imagePaths.isNotEmpty ? imagePaths.first : null,
           'audio_url': audioPath,
           'expires_at': expiresAt.toIso8601String(),
+          if (aiCategory != null) 'ai_category': aiCategory,
+          if (aiConfidence != null) 'ai_confidence': aiConfidence,
+          if (priorityScore != null) 'priority_score': priorityScore,
+          if (credibilityScore != null) 'credibility_score': credibilityScore,
         })
         .select()
         .single();
@@ -98,6 +106,10 @@ class ReportRepositoryImpl {
       imagePaths:
           imageUrl != null && imageUrl.isNotEmpty ? [imageUrl] : const [],
       audioPath: row['audio_url'] as String?,
+      aiCategory: row['ai_category'] as String?,
+      aiConfidence: (row['ai_confidence'] as num?)?.toDouble(),
+      priorityScore: (row['priority_score'] as num?)?.toDouble(),
+      credibilityScore: (row['credibility_score'] as num?)?.toDouble(),
     );
   }
 

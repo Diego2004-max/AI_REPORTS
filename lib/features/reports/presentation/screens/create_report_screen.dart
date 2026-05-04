@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-import 'package:reportes_ai/app/theme/app_spacing.dart';
+import 'package:reportes_ai/app/theme/app_colors.dart';
 import 'package:reportes_ai/features/reports/presentation/screens/create_audio_report_screen.dart';
 import 'package:reportes_ai/features/reports/presentation/screens/create_written_report_screen.dart';
-import 'package:reportes_ai/shared/widgets/app_card.dart';
-import 'package:reportes_ai/shared/widgets/custom_app_bar.dart';
+import 'package:reportes_ai/shared/widgets/shared_widgets.dart';
 
 class CreateReportScreen extends StatelessWidget {
   const CreateReportScreen({super.key});
@@ -12,140 +12,184 @@ class CreateReportScreen extends StatelessWidget {
   void _openWritten(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const CreateWrittenReportScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const CreateWrittenReportScreen()),
     );
   }
 
   void _openAudio(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const CreateAudioReportScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const CreateAudioReportScreen()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: const CustomAppBar(
-        title: 'Crear reporte',
-        showBack: true,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.screenH),
+      backgroundColor: AppColors.bg,
+      body: AppBackground(
+        child: SafeArea(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '¿Cómo quieres reportar?',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Elige el tipo de reporte que deseas enviar.',
-                style: theme.textTheme.bodyMedium,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              AppCard(
-                onTap: () => _openWritten(context),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
+                child: Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: scheme.primary.withAlpha(18),
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusMd),
-                      ),
-                      child: Icon(
-                        Icons.edit_note_rounded,
-                        color: scheme.primary,
-                        size: 28,
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).maybePop(),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 18,
+                        color: AppColors.text,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(width: 12),
                     Text(
-                      'Reporte escrito',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
+                      'Crear reporte',
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w400,
+                        fontStyle: FontStyle.italic,
+                        color: AppColors.text,
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      'Opcion para escribir manualmente el incidente.',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    const _FlowPoint(text: 'Título obligatorio'),
-                    const _FlowPoint(text: 'Categoría obligatoria'),
-                    const _FlowPoint(text: 'Descripción obligatoria'),
-                    const _FlowPoint(text: 'Ubicación obligatoria'),
-                    const _FlowPoint(text: 'Imagen opcional'),
-                    const SizedBox(height: AppSpacing.lg),
-                    FilledButton.icon(
-                      onPressed: () => _openWritten(context),
-                      icon: const Icon(Icons.arrow_forward_rounded),
-                      label: const Text('Continuar con reporte escrito'),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              AppCard(
-                onTap: () => _openAudio(context),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: scheme.secondary.withAlpha(18),
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusMd),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(22, 28, 22, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '¿Cómo quieres reportar?',
+                        style: GoogleFonts.playfairDisplay(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w400,
+                          fontStyle: FontStyle.italic,
+                          color: AppColors.text,
+                        ),
                       ),
-                      child: Icon(
-                        Icons.mic_rounded,
-                        color: scheme.secondary,
-                        size: 28,
+                      const SizedBox(height: 6),
+                      Text(
+                        'Elige el tipo de reporte que deseas enviar.',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w300,
+                          color: AppColors.muted,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Text(
-                      'Reporte por audio',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
+                      const SizedBox(height: 28),
+                      AppCard(
+                        radius: 24,
+                        onTap: () => _openWritten(context),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: AppColors.accentSoft,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.edit_note_rounded,
+                                color: AppColors.accent,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            Text(
+                              'Reporte escrito',
+                              style: GoogleFonts.playfairDisplay(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w400,
+                                fontStyle: FontStyle.italic,
+                                color: AppColors.text,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Opción para escribir manualmente el incidente.',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w300,
+                                color: AppColors.muted,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            const _FlowPoint(text: 'Título obligatorio'),
+                            const _FlowPoint(text: 'Categoría obligatoria'),
+                            const _FlowPoint(text: 'Descripción obligatoria'),
+                            const _FlowPoint(text: 'Ubicación obligatoria'),
+                            const _FlowPoint(text: 'Imagen opcional'),
+                            const SizedBox(height: 20),
+                            PrimaryButton(
+                              label: 'Continuar con reporte escrito',
+                              onPressed: () => _openWritten(context),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      'Opción para enviar evidencia por audio.',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    const _FlowPoint(text: 'Título obligatorio'),
-                    const _FlowPoint(text: 'Categoría obligatoria'),
-                    const _FlowPoint(text: 'Audio obligatorio'),
-                    const _FlowPoint(text: 'Ubicación obligatoria'),
-                    const _FlowPoint(text: 'Imagen opcional'),
-                    const _FlowPoint(text: 'Descripción opcional'),
-                    const SizedBox(height: AppSpacing.lg),
-                    FilledButton.icon(
-                      onPressed: () => _openAudio(context),
-                      icon: const Icon(Icons.arrow_forward_rounded),
-                      label: const Text('Continuar con reporte por audio'),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      AppCard(
+                        radius: 24,
+                        onTap: () => _openAudio(context),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceVariant,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.mic_none_rounded,
+                                color: AppColors.muted,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            Text(
+                              'Reporte por audio',
+                              style: GoogleFonts.playfairDisplay(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w400,
+                                fontStyle: FontStyle.italic,
+                                color: AppColors.text,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Opción para enviar evidencia por audio.',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w300,
+                                color: AppColors.muted,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            const _FlowPoint(text: 'Título obligatorio'),
+                            const _FlowPoint(text: 'Categoría obligatoria'),
+                            const _FlowPoint(text: 'Audio obligatorio'),
+                            const _FlowPoint(text: 'Ubicación obligatoria'),
+                            const _FlowPoint(text: 'Imagen opcional'),
+                            const _FlowPoint(text: 'Descripción opcional'),
+                            const SizedBox(height: 20),
+                            PrimaryButton(
+                              label: 'Continuar con reporte por audio',
+                              onPressed: () => _openAudio(context),
+                              ghost: true,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -157,25 +201,33 @@ class CreateReportScreen extends StatelessWidget {
 }
 
 class _FlowPoint extends StatelessWidget {
-  const _FlowPoint({
-    required this.text,
-  });
-
   final String text;
+  const _FlowPoint({required this.text});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 6),
-            child: Icon(Icons.circle, size: 8),
+          Container(
+            width: 5,
+            height: 5,
+            decoration: const BoxDecoration(
+              color: AppColors.faint,
+              shape: BoxShape.circle,
+            ),
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(child: Text(text)),
+          const SizedBox(width: 10),
+          Text(
+            text,
+            style: GoogleFonts.dmSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w300,
+              color: AppColors.muted,
+            ),
+          ),
         ],
       ),
     );

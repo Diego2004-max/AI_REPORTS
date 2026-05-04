@@ -5,7 +5,7 @@ import 'package:reportes_ai/features/map/presentation/screens/map_screen.dart';
 import 'package:reportes_ai/features/profile/presentation/screens/profile_screen.dart';
 import 'package:reportes_ai/features/reports/presentation/screens/create_report_screen.dart';
 import 'package:reportes_ai/features/reports/presentation/screens/report_list_screen.dart';
-import 'package:reportes_ai/shared/widgets/bottom_nav_bar.dart';
+import 'package:reportes_ai/shared/widgets/shared_widgets.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -19,18 +19,13 @@ class _MainScreenState extends State<MainScreen> {
 
   void _onTabSelected(int index) {
     if (_currentIndex == index) return;
-
-    setState(() {
-      _currentIndex = index;
-    });
+    setState(() => _currentIndex = index);
   }
 
   Future<void> _onCreateReportTap() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const CreateReportScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const CreateReportScreen()),
     );
   }
 
@@ -52,12 +47,12 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: false,
+      extendBody: true,
       body: _buildCurrentScreen(),
-      bottomNavigationBar: AppBottomNavBar(
+      bottomNavigationBar: AppBottomNav(
         currentIndex: _currentIndex,
-        onTabSelected: _onTabSelected,
-        onCreateTap: _onCreateReportTap,
+        onTap: _onTabSelected,
+        onCreate: _onCreateReportTap,
       ),
     );
   }

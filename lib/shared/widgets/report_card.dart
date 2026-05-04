@@ -14,30 +14,38 @@ abstract final class ReportStatus {
 extension ReportStatusColor on String {
   Color get statusColor {
     final s = toLowerCase();
-    if (s.contains('pendiente') || s.contains('revisión')) {
-      return const Color(0xFFEF9F27); // Warning
+    if (s.contains('revisión') || s.contains('pendiente')) {
+      return AppColors.warning;
     }
-    if (s.contains('verificado') || s.contains('atendido')) {
-      return const Color(0xFF1D9E75); // Success
+    if (s.contains('atendido') || s.contains('verificado')) {
+      return AppColors.success;
     }
     if (s.contains('rechazado') || s.contains('error')) {
-      return const Color(0xFFE24B4A); // Error
+      return AppColors.error;
     }
-    return AppColors.primary;
+    // "Enviado" → design spec: info blue
+    if (s.contains('enviado')) {
+      return AppColors.info;
+    }
+    return AppColors.info;
   }
 
   Color get statusBackground {
     final s = toLowerCase();
-    if (s.contains('pendiente') || s.contains('revisión')) {
-      return const Color(0xFFFFF3E0); 
+    if (s.contains('revisión') || s.contains('pendiente')) {
+      return AppColors.warningLight;
     }
-    if (s.contains('verificado') || s.contains('atendido')) {
-      return const Color(0xFFE8F5E9); 
+    if (s.contains('atendido') || s.contains('verificado')) {
+      return AppColors.successLight;
     }
     if (s.contains('rechazado') || s.contains('error')) {
-      return const Color(0xFFFFEBEE); 
+      return AppColors.errorLight;
     }
-    return AppColors.primaryContainer.withAlpha(50);
+    // "Enviado" → info light
+    if (s.contains('enviado')) {
+      return AppColors.infoLight;
+    }
+    return AppColors.infoLight;
   }
 }
 

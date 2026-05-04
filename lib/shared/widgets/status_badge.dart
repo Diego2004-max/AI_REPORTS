@@ -13,15 +13,10 @@ class StatusBadge extends StatelessWidget {
 
   IconData _icon() {
     final s = status.toLowerCase();
-    if (s.contains('revisión') || s.contains('pendiente') || s.contains('enviado')) {
-      return Icons.hourglass_top_rounded;
-    }
-    if (s.contains('verificado') || s.contains('atendido')) {
-      return Icons.check_circle_rounded;
-    }
-    if (s.contains('rechazado') || s.contains('error')) {
-      return Icons.cancel_rounded;
-    }
+    if (s.contains('enviado')) return Icons.send_rounded;
+    if (s.contains('revisión') || s.contains('pendiente')) return Icons.search_rounded;
+    if (s.contains('atendido') || s.contains('verificado')) return Icons.check_circle_rounded;
+    if (s.contains('rechazado') || s.contains('error')) return Icons.cancel_rounded;
     return Icons.circle_rounded;
   }
 

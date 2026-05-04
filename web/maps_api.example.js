@@ -1,7 +1,1 @@
-(function () {
-    const script = document.createElement('script');
-    script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyDtg_PPMoGGhzwHU2CS9BUE7qk5Gm0o0Ho';
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
-})();
+window.GOOGLE_MAPS_API_KEY = 'AIzaSyD5F2f1ged00zJ0ibokFkVLLcbUz8o7npI';

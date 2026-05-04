@@ -1,52 +1,75 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  // Brand colors
-  static const Color primary = Color(0xFF005EA4);
-  static const Color primaryContainer = Color(0xFF1777C9);
-  static const Color primaryLight = Color(0xFFD2E4FF); // primary-fixed
-  
-  static const Color secondary = Color(0xFF5C5E63);
-  static const Color secondaryContainer = Color(0xFFDEDFE5);
+  // ── V3: NEUMORPHIC BLUE-GRAY PALETTE ─────────────────────────────────────
 
-  static const Color onPrimary = Color(0xFFFFFFFF);
-  static const Color onSecondary = Color(0xFFFFFFFF);
-
-  // Background and Surfaces
-  static const Color background = Color(0xFFF8F9FF);
-  static const Color surface = Color(0xFFF8F9FF);
-  static const Color surfaceContainerLowest = Color(0xFFFFFFFF);
-  static const Color surfaceContainerLow = Color(0xFFF1F3FB);
-  static const Color surfaceContainer = Color(0xFFECEEF5);
-  static const Color surfaceContainerHigh = Color(0xFFE5E7EE);
-  static const Color surfaceContainerHighest = Color(0xFFE0E2EA);
-  static const Color surfaceVariant = Color(0xFFE0E2EA);
+  // Backgrounds
+  static const Color bg             = Color(0xFFE8ECF3);
+  static const Color bg2            = Color(0xFFDFE4EE);
+  static const Color surface        = Color(0xFFFFFFFF);
+  static const Color surfaceVariant = Color(0xFFF0F4FA);
 
   // Text
-  static const Color textPrimary = Color(0xFF181C21); // on-surface
-  static const Color textSecondary = Color(0xFF414751); // on-surface-variant
-  static const Color textDisabled = Color(0xFF717783); // outline
-  static const Color textOnPrimary = Color(0xFFFFFFFF);
-  
-  // Semantic Colors
-  static const Color success = Color(0xFF1D9E75); 
-  static const Color successLight = Color(0xFFE8F6F1); 
-  
-  static const Color warning = Color(0xFFEF9F27);
-  static const Color warningLight = Color(0xFFFEF5E9);
-  
-  static const Color error = Color(0xFFBA1A1A);
-  static const Color errorLight = Color(0xFFFFDAD6); 
-  
-  static const Color info = Color(0xFF378ADD);
-  static const Color infoLight = Color(0xFFE2EBF5);
+  static const Color text  = Color(0xFF1C2033);
+  static const Color muted = Color(0xFF7B84A0);
+  static const Color faint = Color(0xFFA8B0C8);
 
-  // Outline, Border & Dividers
-  static const Color outline = Color(0xFF717783);
-  static const Color border = Color(0xFFC0C7D3); 
-  static const Color divider = Color(0xFFE0E2EA); 
+  // Borders
+  static const Color border = Color(0xFFD4DBE8);
 
-  // Shadows (Ambient Shadows - Vial Lucid)
-  static const Color shadow = Color(0x14000000); // 8% opacity, very soft
-  static const Color shadowTint = Color(0xFFD6E4FF); // Soft blue tint for shadows
+  // Único acento (electric blue)
+  static const Color accent     = Color(0xFF2B4BFF);
+  static const Color accentSoft = Color(0x142B4BFF);
+
+  // Semantic (desaturados, silenciados)
+  static const Color success     = Color(0xFF34C989);
+  static const Color successSoft = Color(0x1234C989);
+  static const Color warning     = Color(0xFFDC963C);
+  static const Color warningSoft = Color(0x12DC963C);
+  static const Color error       = Color(0xFFE05555);
+  static const Color errorSoft   = Color(0x12E05555);
+
+  // Shadows neumórficas
+  static const Color shadowDark  = Color(0x8CAEB7CE);
+  static const Color shadowLight = Color(0xE6FFFFFF);
+
+  // ── BACKWARD COMPAT ALIASES ───────────────────────────────────────────────
+  static const Color primary             = accent;
+  static const Color primaryLight        = Color(0xFF5B75FF);
+  static const Color primaryDark         = Color(0xFF1A2E99);
+  static const Color primarySoft         = accentSoft;
+  static const Color primaryBadge        = accentSoft;
+  static const Color primaryContainer    = accentSoft;
+  static const Color onPrimary           = Color(0xFFFFFFFF);
+  static const Color textOnPrimary       = Color(0xFFFFFFFF);
+  static const Color textPrimary         = text;
+  static const Color textSecondary       = muted;
+  static const Color textDisabled        = faint;
+  static const Color background          = bg;
+  static const Color outline             = border;
+  static const Color divider             = Color(0xFFE8ECF3);
+  static const Color shadow              = Color(0x0A1C2033);
+  static const Color shadowTint          = Color(0x001C2033);
+  static const Color secondary           = text;
+  static const Color info                = accent;
+  static const Color infoLight           = accentSoft;
+  static const Color successLight        = successSoft;
+  static const Color warningLight        = warningSoft;
+  static const Color errorLight          = errorSoft;
+  static const Color surfaceContainerLowest    = Color(0xFFFFFFFF);
+  static const Color surfaceContainerLow       = Color(0xFFF0F4FA);
+  static const Color surfaceContainer          = Color(0xFFE4EBFA);
+  static const Color surfaceContainerHigh      = surfaceVariant;
+  static const Color surfaceContainerHighest   = Color(0xFFD4DBE8);
+
+  // ── DARK MODE ─────────────────────────────────────────────────────────────
+  static const Color darkBg             = Color(0xFF1C2033);
+  static const Color darkSurface        = Color(0xFF252B40);
+  static const Color darkSurfaceVariant = Color(0xFF2D3452);
+  static const Color darkBorder         = Color(0xFF3D4566);
+  static const Color darkDivider        = Color(0xFF2D3452);
+  static const Color darkPrimary        = accent;
+  static const Color darkTextPrimary    = Color(0xFFF0F2FA);
+  static const Color darkTextSecondary  = Color(0xFFA8B0C8);
+  static const Color darkTextDisabled   = Color(0xFF7B84A0);
 }

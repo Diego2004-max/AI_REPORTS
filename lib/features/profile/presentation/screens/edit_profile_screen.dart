@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reportes_ai/app/theme/app_colors.dart';
-import 'package:reportes_ai/app/theme/app_spacing.dart';
-import 'package:reportes_ai/shared/widgets/custom_app_bar.dart';
-import 'package:reportes_ai/shared/widgets/custom_textfield.dart';
-import 'package:reportes_ai/shared/widgets/primary_button.dart';
+import 'package:reportes_ai/shared/widgets/shared_widgets.dart';
 import 'package:reportes_ai/state/auth_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
 
@@ -25,9 +23,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   void initState() {
     super.initState();
     final session = ref.read(sessionProvider);
-    _nameController = TextEditingController(
-      text: session.userName ?? '',
-    );
+    _nameController = TextEditingController(text: session.userName ?? '');
   }
 
   @override
@@ -52,10 +48,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     setState(() => _isSaving = true);
 
     try {
-      final updatedUser = await ref.read(authRepositoryProvider).updateUserName(
-            userId: userId,
-            newName: _nameController.text,
-          );
+      final updatedUser = await ref
+          .read(authRepositoryProvider)
+          .updateUserName(userId: userId, newName: _nameController.text);
 
       await ref
           .read(sessionProvider.notifier)
@@ -70,7 +65,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
       );
@@ -84,60 +78,125 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final session = ref.watch(sessionProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: const CustomAppBar(
-        title: 'Editar perfil',
-        showBack: true,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.screenH),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Actualiza tu información básica',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  'Puedes cambiar tu nombre visible. El correo se mantiene como referencia de la cuenta.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
+      backgroundColor: AppColors.bg,
+      body: AppBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).maybePop(),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 18,
+                        color: AppColors.text,
                       ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Mi información',
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w400,
+                        fontStyle: FontStyle.italic,
+                        color: AppColors.text,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: AppSpacing.xxl),
-                CustomTextField(
-                  label: 'Nombre completo',
-                  hint: 'Ingresa tu nombre',
-                  controller: _nameController,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Ingresa tu nombre';
-                    }
-                    if (value.trim().length < 3) {
-                      return 'Mínimo 3 caracteres';
-                    }
-                    return null;
-                  },
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(22, 28, 22, 32),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Actualiza tu información básica',
+                          style: GoogleFonts.playfairDisplay(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w400,
+                            fontStyle: FontStyle.italic,
+                            color: AppColors.text,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Puedes cambiar tu nombre visible. El correo se mantiene como referencia de la cuenta.',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w300,
+                            color: AppColors.muted,
+                            height: 1.55,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        AppTextField(
+                          label: 'Nombre completo',
+                          placeholder: 'Ingresa tu nombre',
+                          controller: _nameController,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Ingresa tu nombre';
+                            }
+                            if (value.trim().length < 3) {
+                              return 'Mínimo 3 caracteres';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4, bottom: 8),
+                              child: Text(
+                                'CORREO ELECTRÓNICO',
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w300,
+                                  color: AppColors.faint,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 18, vertical: 16),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceVariant,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Text(
+                                session.email ?? '—',
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w300,
+                                  color: AppColors.muted,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 36),
+                        PrimaryButton(
+                          label: 'Guardar cambios',
+                          onPressed: _isSaving ? null : _saveProfile,
+                          loading: _isSaving,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                const SizedBox(height: AppSpacing.lg),
-                CustomTextField(
-                  label: 'Correo electrónico',
-                  hint: session.email ?? '',
-                  initialValue: session.email,
-                  enabled: false,
-                ),
-                const SizedBox(height: AppSpacing.xxl),
-                PrimaryButton(
-                  label: 'Guardar cambios',
-                  onPressed: _saveProfile,
-                  isLoading: _isSaving,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

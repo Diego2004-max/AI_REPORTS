@@ -6,9 +6,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:reportes_ai/app/theme/app_colors.dart';
+import 'package:reportes_ai/core/services/ai_service.dart';
 import 'package:reportes_ai/core/services/location_service.dart';
 import 'package:reportes_ai/core/services/voice_service.dart';
 import 'package:reportes_ai/core/services/speech_service.dart';
+import 'package:reportes_ai/data/models/ai_classification.dart';
+import 'package:reportes_ai/shared/widgets/ai_classification_card.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
 import 'package:reportes_ai/shared/widgets/vial_card.dart';
@@ -29,13 +32,16 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
   final LocationService _locationService = LocationService();
   final VoiceService _voiceService = VoiceService();
   final SpeechService _speechService = SpeechService();
+  final AiService _aiService = AiService();
   final ImagePicker _imagePicker = ImagePicker();
 
   bool _isLoading = false;
   bool _isGettingLocation = false;
   bool _isPickingImage = false;
   bool _isRecording = false;
+  bool _isAnalyzing = false;
   String _transcription = '';
+  AiClassification? _aiResult;
 
   String _selectedCategory = 'Accidente';
   String _selectedSeverity = 'Moderado';
@@ -127,10 +133,41 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
           _descriptionController.text = _transcription;
         }
       });
+      // Auto-analyze with AI if transcription is available
+      if (_transcription.isNotEmpty) {
+        _analyzeWithAi(_transcription);
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isRecording = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo detener la grabación: $e')));
+    }
+  }
+
+  Future<void> _analyzeWithAi(String text) async {
+    setState(() {
+      _isAnalyzing = true;
+      _aiResult = null;
+    });
+    try {
+      final result = await _aiService.classifyReport(
+        description: text,
+        locationLabel: _locationLabel,
+        transcribedAudio: _transcription.isNotEmpty ? _transcription : null,
+      );
+      if (!mounted) return;
+      setState(() {
+        _aiResult = result;
+        // Auto-apply category when confidence is high
+        if (result.confidence > 0.7 &&
+            _categories.containsKey(result.suggestedCategory)) {
+          _selectedCategory = result.suggestedCategory;
+        }
+      });
+    } catch (_) {
+      // AI analysis is optional; silently skip on error
+    } finally {
+      if (mounted) setState(() => _isAnalyzing = false);
     }
   }
 
@@ -149,7 +186,9 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
 
   Future<void> _submitReport() async {
     final session = ref.read(sessionProvider);
-    if (session.userId == null) {
+    final userId = session.userId;
+
+    if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Debes iniciar sesión')));
       return;
     }
@@ -168,20 +207,58 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
 
     setState(() => _isLoading = true);
     try {
+      final description = _descriptionController.text.trim().isEmpty
+          ? 'Reporte enviado por audio'
+          : _descriptionController.text.trim();
       final generatedTitle = '$_selectedCategory - $_selectedSeverity - Audio';
-      
+
+      // Run AI pipeline (non-blocking: failures are silently skipped)
+      AiClassification? aiResult = _aiResult;
+      double credibilityScore = 1.0;
+      double priorityScore = 0.5;
+
+      try {
+        if (aiResult == null && _transcription.isNotEmpty) {
+          aiResult = await _aiService.classifyReport(
+            description: description,
+            locationLabel: _locationLabel,
+            transcribedAudio: _transcription,
+          );
+          if (mounted) setState(() => _aiResult = aiResult);
+        }
+
+        if (aiResult != null) {
+          credibilityScore = await _aiService.getCredibilityScore(
+            userId: userId,
+            description: description,
+            latitude: _currentPosition!.latitude,
+            longitude: _currentPosition!.longitude,
+          );
+          priorityScore = await _aiService.getPriorityScore(
+            classification: aiResult,
+            credibilityScore: credibilityScore,
+          );
+        }
+      } catch (_) {
+        // AI is optional — save report without AI fields on failure
+      }
+
       await ref.read(reportRepositoryProvider).createReport(
-            userId: session.userId!,
+            userId: userId,
             title: generatedTitle,
-            description: _descriptionController.text.trim().isEmpty 
-                 ? 'Reporte enviado por audio' 
-                 : _descriptionController.text.trim(),
+            description: description,
             category: _selectedCategory,
             locationLabel: _locationLabel,
             latitude: _currentPosition?.latitude,
             longitude: _currentPosition?.longitude,
             imagePaths: _imagePath != null ? [_imagePath!] : const [],
             audioPath: _audioPath,
+            aiCategory: aiResult?.rawAiCategory.isNotEmpty == true
+                ? aiResult!.rawAiCategory
+                : null,
+            aiConfidence: aiResult?.confidence,
+            priorityScore: priorityScore,
+            credibilityScore: credibilityScore,
           );
 
       refreshReports(ref);
@@ -373,6 +450,28 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
                           ),
                         ),
                       ),
+                    if (_isAnalyzing)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(width: 14, height: 14,
+                                child: CircularProgressIndicator(strokeWidth: 2)),
+                            SizedBox(width: 8),
+                            Text('Analizando con IA...',
+                                style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                          ],
+                        ),
+                      ),
+                    if (_aiResult != null && !_isRecording) ...[
+                      const SizedBox(height: 12),
+                      AiClassificationCard(
+                        classification: _aiResult!,
+                        onAcceptCategory: () =>
+                            setState(() => _selectedCategory = _aiResult!.suggestedCategory),
+                      ),
+                    ],
                     if (_audioPath != null && !_isRecording)
                        TextButton(onPressed: _deleteAudio, child: const Text('Eliminar y rehacer', style: TextStyle(color: AppColors.error))),
                   ],

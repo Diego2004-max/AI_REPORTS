@@ -4,144 +4,139 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**reportes_ai** — App Flutter de reportes ciudadanos con IA. Permite capturar incidentes (obras, accidentes, etc.) con ubicación GPS, imágenes y audio, mostrarlos en un mapa interactivo y, en el roadmap, analizar esos datos con modelos NLP y predictivos.
+**reportes_ai** — Flutter citizen-reporting app powered by AI. Users capture urban incidents (accidents, road damage, infrastructure failures) with GPS, images, and audio. Reports are visualized on an interactive map and classified/prioritized via Gemini 2.0 Flash through Supabase Edge Functions.
 
-Backend: Supabase · State: Riverpod · Nav: Go Router · Local: Hive
+Stack: Flutter · Supabase (Auth, DB, Edge Functions) · Riverpod · Go Router · Hive · Google Maps
 
-## Comandos de desarrollo
+## Development Commands
 
 ```bash
-# Web (Chrome) — workflow principal
+# Web (Chrome) — primary development target
 flutter run --dart-define=SUPABASE_PUBLISHABLE_KEY=<key> -d chrome
 
 # Android
 flutter run --dart-define=SUPABASE_PUBLISHABLE_KEY=<key> -d <device-id>
 
-# Build Android release
+# Release build
 flutter build apk --dart-define=SUPABASE_PUBLISHABLE_KEY=<key>
 
-# Análisis estático
+# Static analysis
 flutter analyze
 
-# Tests
+# All tests
 flutter test
 
-# Test de un archivo específico
+# Single test file
 flutter test test/path/to/test_file.dart
 ```
 
-## Configuración requerida antes de ejecutar
+## Required Configuration
 
-Ningún archivo de claves se sube a git. Cada desarrollador crea sus archivos locales siguiendo estas instrucciones.
+No key files are committed. Each developer sets up these locally:
 
-### 1. API Key de Google Maps — Web
+**Google Maps — Web:** Copy `web/maps_api.example.js` → `web/maps_api.js` and set `window.GOOGLE_MAPS_API_KEY`.  
+**Google Maps — Android:** Add `MAPS_API_KEY=<key>` to `android/local.properties`.  
+**Google Maps — iOS:** Set key in `ios/Runner/AppDelegate.swift` via `GMSServices.provideAPIKey(...)`.  
+**Supabase:** Pass as `--dart-define=SUPABASE_PUBLISHABLE_KEY=<key>`. The project URL is hardcoded in `lib/main.dart`.
 
-Copiar `web/maps_api.example.js` → `web/maps_api.js` (ya en `.gitignore`) y editar:
-```js
-window.GOOGLE_MAPS_API_KEY = 'TU_CLAVE_REAL_AQUI';
-```
-El `web/index.html` carga ese archivo e inyecta el script de Google Maps con esa variable.
+Required Google Cloud APIs: Maps JavaScript API, Maps SDK for Android/iOS, Geocoding API.
 
-### 2. API Key de Google Maps — Android
+## Architecture
 
-Editar `android/local.properties` (ya en `.gitignore`) y agregar:
-```
-MAPS_API_KEY=TU_CLAVE_REAL_AQUI
-```
-
-### 3. API Key de Google Maps — iOS
-
-Editar `ios/Runner/AppDelegate.swift` y reemplazar el placeholder en:
-```swift
-GMSServices.provideAPIKey("TU_CLAVE_REAL_AQUI")
-```
-
-Las claves deben tener habilitados en Google Cloud Console: Maps JavaScript API, Maps SDK for Android, Maps SDK for iOS, Geocoding API.
-
-### 4. Supabase Key
-
-Pasar como `--dart-define=SUPABASE_PUBLISHABLE_KEY=<key>` al correr/compilar. La URL del proyecto está hardcodeada en `lib/main.dart`.
-
-## Arquitectura
-
-Clean Architecture en tres capas:
+Clean Architecture in three layers:
 
 ```
 lib/
-├── app/           # MaterialApp, Go Router (app_router.dart), tema + colores + spacing
-├── core/          # Servicios transversales (location, media, speech, supabase, ai)
-├── data/          # Modelos, repositorios impl, datasources remotos (Supabase) y locales (Hive)
-├── domain/        # Interfaces abstractas de repositorios
-├── features/      # Pantallas por feature: auth, home, map, reports, profile, analytics, notifications, settings
-├── shared/        # Widgets reutilizables (design system "Vial")
-└── state/         # Todos los Riverpod providers
+├── app/           # MaterialApp, Go Router, theme (colors, spacing, shadows, text styles)
+├── core/          # Cross-cutting services: LocationService, VoiceService, SpeechService, AiService
+├── data/          # Models, repository implementations, Supabase datasources, Hive local storage
+├── domain/        # Abstract repository interfaces
+├── features/      # Screens per feature: auth, home, map, reports, profile, analytics, settings
+├── shared/        # Reusable widgets — "Vial" design system (VialButton, VialCard, VialTextField)
+└── state/         # All Riverpod providers
 ```
 
-**Flujo de datos:** `features/` → providers en `state/` → repositorios en `data/repositories/` → datasources remotos (`data/remote/supabase/`) o locales (`data/local/hive/`).
+Data flow: `features/` → `state/` providers → `data/repositories/` → `data/remote/supabase/` or `data/local/hive/`.
 
-**Modelo central:** `data/models/report_model.dart` — campos clave: `latitude`/`longitude` (opcionales, los marcadores del mapa solo se crean si no son `null`); `status` usa los literales `'Enviado'`, `'En revisión'`, `'Atendido'`; `imagePaths` es `List<String>` pero solo se persiste el primero (`image_url`) en Supabase.
+## Design System
 
-## Autenticación y sesión
+The app uses a custom design system called **Vial** (`shared/widgets/`, `app/theme/`). All design work must follow these conventions:
 
-- `state/auth_provider.dart` expone `AuthRepositoryImpl` para login/register.
-- `state/session_provider.dart` (`SessionNotifier`) persiste la sesión activa en Hive (`isLoggedIn`, `userId`, `userEmail`, `userName`). Al reiniciar la app Hive la restaura.
-- Go Router (`app/router/app_router.dart`) observa `sessionProvider`: redirige a `/login` sin sesión y a `/app` con sesión activa.
-- Supabase crea el perfil en la tabla `profiles` al registrar; login recupera los datos de esa tabla.
+**Color philosophy:** The palette uses deep navy/slate tones (not generic blue/gray) with electric accent colors. Never default to generic Material blue (`#2196F3`) or plain gray. Use the constants defined in `app/theme/app_colors.dart`.
 
-## Mapa
+**Current palette:**
+- Light background: `#E8ECF3` · Surface: `#FFFFFF` · Text: `#1C2033`
+- Dark background: `#1C2033` · Surface: `#252B40` · Text: `#F0F2FA`
+- Primary accent: `#2B4BFF` (electric blue)
+- Semantic: success green, warning orange, error red — each with a soft variant
 
-- Pantalla: `features/map/presentation/screens/map_screen.dart`
-- Usa `allReportsProvider` (FutureProvider) que llama `ReportRepositoryImpl.getAllReports()` en Supabase.
-- Centro inicial: `LatLng(1.2136, -77.2811)` (Pasto, Colombia).
-- Tap en marcador → bottom sheet con detalle del reporte.
-- El mapa queda gris/blanco si `MAPS_API_KEY` está vacía o no configurada.
+**Typography:** DM Sans for body/display; Playfair Display italic for app bar titles. Do not introduce new fonts without updating `pubspec.yaml` and verifying Google Fonts availability.
 
-## Reportes
+**Shadows:** Neumorphic dual-color shadows (light + dark pair) defined in `app/theme/app_shadows.dart`. Use `AppShadows.card`, `.soft`, `.float`, `.accentGlow`.
 
-- **Creación:** dos flujos — reporte escrito (`CreateWrittenReportScreen`) y reporte de audio (`CreateAudioReportScreen`). Ambos capturan ubicación GPS automáticamente al abrirse usando `LocationService`.
-- **Audio:** `VoiceService` envuelve el paquete `record`; `SpeechService` envuelve `speech_to_text` (disponible pero no integrado todavía en el flujo de creación).
-- **Caché local:** `reportCacheBox` (reportes vistos offline) y `reportDraftsBox` (borradores sin subir) definidos en `core/constants/hive_boxes.dart`.
-- **Categorías disponibles** (hardcoded en UI): Accidente, Derrumbe, Semáforo dañado, Vía bloqueada.
+**Spacing:** Always use `AppSpacing` constants (`xs=4`, `sm=8`, `md=12`, `lg=16`, `xl=24`, `xxl=32`). Never use magic numbers for padding/margin.
 
-## Providers clave de Riverpod
+**Dark/Light Mode:** Managed by `themeProvider` (NotifierProvider, persisted in Hive). Both themes must be fully implemented — no screen should rely on hardcoded colors. Always use `Theme.of(context)` or `AppColors` semantic tokens, never literal hex values in widgets.
 
-| Provider | Tipo | Descripción |
+## Key Providers
+
+| Provider | Type | Purpose |
 |---|---|---|
-| `sessionProvider` | `NotifierProvider` | Sesión activa del usuario |
-| `authProvider` | `Provider` | Instancia de `AuthRepositoryImpl` |
-| `reportRepositoryProvider` | `Provider` | Instancia de `ReportRepositoryImpl` |
-| `allReportsProvider` | `FutureProvider` | Todos los reportes (para el mapa) |
-| `userReportsProvider` | `FutureProvider` | Reportes del usuario autenticado |
-| `recentUserReportsProvider` | `FutureProvider.family(int)` | N reportes más recientes del usuario |
-| `userReportStatsProvider` | `FutureProvider` | Conteos por status para dashboard |
-| `reportRefreshProvider` | `NotifierProvider` | Incrementar para forzar re-fetch |
-| `themeProvider` | `NotifierProvider` | Modo de tema (light/dark/system), persiste en Hive |
+| `sessionProvider` | `NotifierProvider` | Active user session (persisted in Hive) |
+| `authProvider` | `Provider` | `AuthRepositoryImpl` singleton |
+| `reportRepositoryProvider` | `Provider` | `ReportRepositoryImpl` singleton |
+| `allReportsProvider` | `FutureProvider` | All reports for map display |
+| `userReportsProvider` | `FutureProvider` | Reports for the logged-in user |
+| `recentUserReportsProvider` | `FutureProvider.family(int)` | Top N recent reports for user |
+| `userReportStatsProvider` | `FutureProvider` | Per-status counts for dashboard |
+| `reportRefreshProvider` | `NotifierProvider` | Increment to trigger report re-fetch |
+| `themeProvider` | `NotifierProvider` | Theme mode (light/dark/system), persisted in Hive |
 
-## Roadmap de IA (stubs listos, lógica pendiente)
+## Auth & Session
 
-Los siguientes archivos existen vacíos y son el punto de entrada para implementar las capacidades de IA:
+- `state/session_provider.dart` (`SessionNotifier`) persists `isLoggedIn`, `userId`, `userEmail`, `userName` in Hive. Session is restored on app restart.
+- Go Router (`app/router/app_router.dart`) watches `sessionProvider`: redirects to `/login` when unauthenticated, to `/app` when authenticated.
+- Registration creates a row in the `profiles` table; login fetches from it.
 
-- `core/services/ai_service.dart` — servicio central de IA
-- `data/models/analytics_model.dart` — modelos de datos analíticos
-- `data/repositories/analytics_repository_impl.dart` — repositorio de analytics
-- `features/analytics/presentation/screens/statistics_screen.dart` — pantalla de estadísticas
-- `features/analytics/presentation/screens/hotspots_screen.dart` — pantalla de zonas de riesgo
+## Reports
 
-**Capacidades planificadas:**
+**Two creation flows:**
+1. **Written** (`CreateWrittenReportScreen`) — GPS auto-captured on open, category selector, severity toggle, description, optional image, AI analysis button.
+2. **Audio** (`CreateAudioReportScreen`) — records via `VoiceService` (wraps `record` package), optional transcription via `SpeechService`.
 
-1. **Clasificación NLP de incidentes** — al crear un reporte, usar embeddings (modelo tipo DistilBERT vía API externa o tflite) para asignar categoría automáticamente con probabilidad. Categorías objetivo: Accidente de tránsito, Infraestructura, Seguridad, Emergencia climática, Servicios públicos.
+**Report status literals:** `'Enviado'` · `'En revisión'` · `'Atendido'` — match exactly in all code.
 
-2. **Detección de reportes falsos** — `analytics_repository_impl.dart` debe implementar un índice de credibilidad basado en: frecuencia de envíos por usuario/minuto, similitud semántica con otros reportes recientes, historial de reportes confirmados. Modelos candidatos: Isolation Forest o LOF (vía API Python/FastAPI).
+**ReportModel invariants:**
+- `latitude`/`longitude` are nullable; map markers are only created when both are non-null.
+- `imagePaths` is `List<String>` but only the first element is persisted as `image_url` in Supabase.
+- Reports expire 10 days after creation (`expiresAt`).
 
-3. **Priorización inteligente** — calcular `priorityScore` como función ponderada de: severidad NLP + confirmaciones + tipo de zona + historial de zona + hora del día − riesgo de falsedad. Almacenar en `reports` como columna adicional en Supabase.
+## AI Pipeline
 
-4. **Análisis predictivo espacio-temporal** — `hotspots_screen.dart` debe mostrar mapas de calor (heatmap overlay sobre Google Maps) usando datos históricos de reportes agrupados por zona, hora y condición climática. Modelo candidato: Random Forest vía API externa.
+The AI pipeline is **optional and non-blocking** — if any step fails, the report is saved without AI fields. Never make AI a hard dependency for report submission.
 
-## Tablas Supabase
+**Edge Function** (`supabase/functions/ai-report-processor/index.ts`) runs on Deno/TypeScript and uses Gemini 2.0 Flash. Three actions:
+- `classify` — assigns category, severity, confidence, `sensitive_location`, `road_impact`
+- `credibility` — scores 0.0–1.0 based on user frequency, geographic corroboration, description length
+- `priority` — weighted score: severity 35%, confirmations 20%, sensitive location 15%, road impact 15%, credibility 15%
 
-- `reports`: todos los campos de `ReportModel` incluyendo `latitude`, `longitude`, `image_url`, `audio_url`, `expires_at`.
-- `profiles`: `id` (FK de auth.users), `full_name`, `email`.
+`AiService` in `core/services/ai_service.dart` invokes the function via `supabase.functions.invoke(...)`.
 
-## Design system
+## Map
 
-Widgets propios con prefijo `Vial` en `shared/widgets/`: `VialButton`, `VialCard`, `VialTextField`. Color primario: `#005EA4`. Tipografía: Plus Jakarta Sans. Espaciado en `app/theme/app_spacing.dart`.
+- Initial center: `LatLng(1.2136, -77.2811)` (Pasto, Colombia).
+- Markers only rendered for reports with non-null coordinates.
+- Map appears gray/blank if Google Maps API key is missing or empty.
+
+## Supabase Tables
+
+- **`reports`** — all `ReportModel` fields plus `ai_category`, `ai_confidence`, `priority_score`, `credibility_score`, `image_url`, `audio_url`, `expires_at`.
+- **`profiles`** — `id` (FK → `auth.users`), `full_name`, `email`.
+
+## Hive Boxes
+
+Defined in `core/constants/hive_boxes.dart`. Six boxes: `settings`, `session`, `users`, `reports`, `reportDrafts`, `reportCache`. Keys are accessed via `HiveKeys.*` constants — never use raw strings.
+
+## Code Language
+
+All code, variable names, comments, class names, and documentation must be written in **English**. UI strings displayed to users may remain in Spanish (the app's target language). No new Spanish identifiers or comments should be introduced.
