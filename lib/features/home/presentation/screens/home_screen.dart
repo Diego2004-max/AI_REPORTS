@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reportes_ai/app/theme/app_colors.dart';
+import 'package:reportes_ai/features/analytics/presentation/screens/hotspots_screen.dart';
+import 'package:reportes_ai/features/analytics/presentation/screens/statistics_screen.dart';
 import 'package:reportes_ai/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:reportes_ai/features/reports/presentation/screens/report_detail_screen.dart';
 import 'package:reportes_ai/shared/widgets/shared_widgets.dart';
@@ -134,6 +136,40 @@ class HomeScreen extends ConsumerWidget {
                               );
                             },
                           ),
+                          const SizedBox(height: 24),
+                          const SectionHeader(title: 'Analítica IA'),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _AnalyticsShortcut(
+                                  icon: Icons.bar_chart_rounded,
+                                  label: 'Estadísticas',
+                                  color: AppColors.accent,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const StatisticsScreen()),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _AnalyticsShortcut(
+                                  icon: Icons.location_on_rounded,
+                                  label: 'Zonas de riesgo',
+                                  color: AppColors.error,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const HotspotsScreen()),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 8),
                         ],
                       ),
@@ -143,6 +179,52 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AnalyticsShortcut extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _AnalyticsShortcut({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AppCard(
+        radius: 16,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withAlpha(20),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, size: 16, color: color),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: GoogleFonts.dmSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.text,
+              ),
+            ),
+          ],
         ),
       ),
     );
