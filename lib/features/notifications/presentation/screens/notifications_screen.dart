@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reportes_ai/app/theme/app_colors.dart';
+import 'package:reportes_ai/app/theme/app_spacing.dart';
 import 'package:reportes_ai/shared/widgets/shared_widgets.dart';
+import 'package:reportes_ai/state/analytics_provider.dart';
 
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -105,83 +107,9 @@ class NotificationsScreen extends ConsumerWidget {
                       status: ReportStatus.rechazado,
                     ),
                     const SizedBox(height: 20),
-                    AppCard(
-                      radius: 24,
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'RIESGO EN TU ZONA',
-                            style: GoogleFonts.dmSans(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w300,
-                              color: AppColors.faint,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Moderado',
-                            style: GoogleFonts.playfairDisplay(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w400,
-                              fontStyle: FontStyle.italic,
-                              color: AppColors.text,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Probabilidad de congestión alta en vías principales hacia el norte. Sugerimos rutas alternas por la Av. Boyacá.',
-                            style: GoogleFonts.dmSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w300,
-                              color: AppColors.muted,
-                              height: 1.55,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              const Icon(Icons.update_rounded, size: 12, color: AppColors.faint),
-                              const SizedBox(width: 5),
-                              Text(
-                                'Actualizado hace 2 min',
-                                style: GoogleFonts.dmSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w300,
-                                  color: AppColors.faint,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                    _RiskSummaryCard(analyticsRef: ref),
                     const SizedBox(height: 20),
-                    _PredictionTile(
-                      title: 'Autopista Norte',
-                      level: 'Riesgo alto',
-                      levelColor: AppColors.error,
-                      schedule: 'Hoy 5PM – 8PM',
-                      certainty: '94% certeza',
-                    ),
-                    const SizedBox(height: 10),
-                    _PredictionTile(
-                      title: 'Av. El Dorado',
-                      level: 'Tráfico lento',
-                      levelColor: AppColors.warning,
-                      schedule: 'Hoy 6PM – 7PM',
-                      certainty: '88% certeza',
-                    ),
-                    const SizedBox(height: 10),
-                    _PredictionTile(
-                      title: 'Av. Circunvalar',
-                      level: 'Despejado',
-                      levelColor: AppColors.success,
-                      schedule: 'Hoy 5PM – 8PM',
-                      certainty: '96% certeza',
-                    ),
+                    _CategoryPredictions(analyticsRef: ref),
                     const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -210,19 +138,134 @@ class NotificationsScreen extends ConsumerWidget {
   }
 }
 
+class _RiskSummaryCard extends StatelessWidget {
+  final WidgetRef analyticsRef;
+  const _RiskSummaryCard({required this.analyticsRef});
+
+  @override
+  Widget build(BuildContext context) {
+    final analyticsAsync = analyticsRef.watch(globalAnalyticsProvider);
+    return analyticsAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (analytics) {
+        final topCategory = analytics.mostActiveCategory;
+        final total = analytics.totalReports;
+        final riskLevel = total >= 20
+            ? 'Alto'
+            : total >= 8
+                ? 'Moderado'
+                : 'Bajo';
+        final riskColor = total >= 20
+            ? AppColors.error
+            : total >= 8
+                ? AppColors.warning
+                : AppColors.success;
+        return AppCard(
+          radius: 24,
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'RIESGO EN TU ZONA',
+                style: GoogleFonts.dmSans(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w300,
+                  color: AppColors.faint,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                riskLevel,
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w400,
+                  fontStyle: FontStyle.italic,
+                  color: riskColor,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Se registraron $total reportes en la zona. '
+                'El tipo de incidente más frecuente es "$topCategory".',
+                style: GoogleFonts.dmSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w300,
+                  color: AppColors.muted,
+                  height: 1.55,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Icon(Icons.update_rounded,
+                      size: 12, color: AppColors.faint),
+                  const SizedBox(width: 5),
+                  Text(
+                    'Datos en tiempo real',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w300,
+                      color: AppColors.faint,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CategoryPredictions extends StatelessWidget {
+  final WidgetRef analyticsRef;
+  const _CategoryPredictions({required this.analyticsRef});
+
+  static const _riskLabels = ['Riesgo alto', 'Riesgo medio', 'Bajo riesgo'];
+  static const _riskColors = [AppColors.error, AppColors.warning, AppColors.success];
+
+  @override
+  Widget build(BuildContext context) {
+    final analyticsAsync = analyticsRef.watch(globalAnalyticsProvider);
+    return analyticsAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (analytics) {
+        final cats = analytics.byCategory.take(3).toList();
+        if (cats.isEmpty) return const SizedBox.shrink();
+        return Column(
+          children: [
+            for (int i = 0; i < cats.length; i++) ...[
+              _PredictionTile(
+                title: cats[i].category,
+                level: _riskLabels[i % _riskLabels.length],
+                levelColor: _riskColors[i % _riskColors.length],
+                count: cats[i].count,
+              ),
+              if (i < cats.length - 1) const SizedBox(height: 10),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _PredictionTile extends StatelessWidget {
   final String title;
   final String level;
   final Color levelColor;
-  final String schedule;
-  final String certainty;
+  final int count;
 
   const _PredictionTile({
     required this.title,
     required this.level,
     required this.levelColor,
-    required this.schedule,
-    required this.certainty,
+    required this.count,
   });
 
   @override
@@ -237,7 +280,8 @@ class _PredictionTile extends StatelessWidget {
             width: 3,
             height: 52,
             margin: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(color: levelColor, borderRadius: AppRadius.borderFull),
+            decoration: BoxDecoration(
+                color: levelColor, borderRadius: AppRadius.borderFull),
           ),
           Expanded(
             child: Column(
@@ -249,19 +293,24 @@ class _PredictionTile extends StatelessWidget {
                     Text(
                       title,
                       style: GoogleFonts.dmSans(
-                        fontSize: 13, fontWeight: FontWeight.w400, color: AppColors.text,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.text,
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: levelColor.withOpacity(0.1),
+                        color: levelColor.withAlpha(25),
                         borderRadius: AppRadius.borderFull,
                       ),
                       child: Text(
                         level,
                         style: GoogleFonts.dmSans(
-                          fontSize: 10, fontWeight: FontWeight.w400, color: levelColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w400,
+                          color: levelColor,
                         ),
                       ),
                     ),
@@ -269,17 +318,21 @@ class _PredictionTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  schedule,
+                  '$count reportes registrados',
                   style: GoogleFonts.dmSans(
-                    fontSize: 11, fontWeight: FontWeight.w300, color: AppColors.muted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w300,
+                    color: AppColors.muted,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  certainty,
+                  'Basado en datos históricos',
                   style: GoogleFonts.dmSans(
-                    fontSize: 10, fontWeight: FontWeight.w300,
-                    color: AppColors.accent, letterSpacing: 0.2,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w300,
+                    color: AppColors.accent,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ],
