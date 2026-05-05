@@ -27,7 +27,7 @@ class AnalyticsRepositoryImpl implements AnalyticsRepository {
   Future<List<HotspotZone>> getHotspots() async {
     final data = await _client
         .from('reports')
-        .select('latitude, longitude, category, priority_score');
+        .select();
 
     // Group by ~500m grid (~0.005 degrees per 500m at equator)
     final zones = <String, Map<String, dynamic>>{};

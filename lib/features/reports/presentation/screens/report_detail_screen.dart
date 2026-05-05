@@ -11,6 +11,7 @@ import 'package:reportes_ai/shared/widgets/app_card.dart';
 import 'package:reportes_ai/shared/widgets/custom_app_bar.dart';
 import 'package:reportes_ai/shared/widgets/primary_button.dart';
 import 'package:reportes_ai/shared/widgets/status_badge.dart';
+import 'package:reportes_ai/data/repositories/report_repository_impl.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
 
@@ -52,6 +53,44 @@ class ReportDetailScreen extends ConsumerWidget {
     final daysLeft = (difference.inHours / 24).ceil();
     if (daysLeft == 1) return 'Este reporte se elimina en 1 día.';
     return 'Este reporte se elimina en $daysLeft días.';
+  }
+
+  Future<void> _confirmResolve(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Marcar como resuelto'),
+          content: const Text(
+            '¿Confirmas que este problema ya fue atendido o resuelto en tu zona?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Confirmar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    await ref
+        .read(reportRepositoryProvider)
+        .updateStatus(report.id, UserReportStatus.attended);
+    refreshReports(ref);
+
+    if (context.mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Reporte marcado como atendido')),
+      );
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
@@ -269,9 +308,21 @@ class ReportDetailScreen extends ConsumerWidget {
               ),
             ),
 
+            // ── Resolve button ───────────────────────────────────────────
+            if (canDelete &&
+                report.status != UserReportStatus.attended) ...[
+              const SizedBox(height: AppSpacing.lg),
+              PrimaryButton(
+                label: 'Marcar como resuelto',
+                backgroundColor: AppColors.success.withAlpha(25),
+                foregroundColor: AppColors.success,
+                onPressed: () => _confirmResolve(context, ref),
+              ),
+            ],
+
             // ── Delete button ────────────────────────────────────────────
             if (canDelete) ...[
-              const SizedBox(height: AppSpacing.xxl),
+              const SizedBox(height: AppSpacing.md),
               PrimaryButton(
                 label: 'Eliminar reporte',
                 backgroundColor: theme.colorScheme.errorContainer,

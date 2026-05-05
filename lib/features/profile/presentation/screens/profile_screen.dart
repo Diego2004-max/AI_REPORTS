@@ -7,10 +7,11 @@ import 'package:reportes_ai/app/router/app_router.dart';
 import 'package:reportes_ai/app/theme/app_colors.dart';
 import 'package:reportes_ai/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:reportes_ai/features/profile/presentation/screens/edit_profile_screen.dart';
+import 'package:reportes_ai/features/settings/presentation/screens/settings_screen.dart';
+import 'package:reportes_ai/features/settings/presentation/screens/theme_screen.dart';
 import 'package:reportes_ai/shared/widgets/shared_widgets.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
-import 'package:reportes_ai/state/theme_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -94,14 +95,20 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                     ),
                     MenuItem(
-                      icon: Icons.shield_outlined,
-                      label: 'Privacidad',
-                      onTap: () {},
+                      icon: Icons.palette_outlined,
+                      label: 'Apariencia',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ThemeScreen()),
+                      ),
                     ),
                     MenuItem(
-                      icon: Icons.light_mode_outlined,
-                      label: 'Apariencia',
-                      onTap: () async => ref.read(themeProvider.notifier).toggleLightDark(),
+                      icon: Icons.settings_outlined,
+                      label: 'Ajustes',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                      ),
                     ),
                     MenuItem(
                       icon: Icons.logout_rounded,
