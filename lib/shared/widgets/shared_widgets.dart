@@ -16,12 +16,15 @@ class AppBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFE8ECF3), Color(0xFFDFE4EE), Color(0xFFE8ECF3)],
+          colors: isDark
+              ? const [Color(0xFF1C2033), Color(0xFF1A1F30), Color(0xFF1C2033)]
+              : const [Color(0xFFE8ECF3), Color(0xFFDFE4EE), Color(0xFFE8ECF3)],
         ),
       ),
       child: child,
@@ -55,6 +58,13 @@ class _AppCardState extends State<AppCard> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = widget.color ??
+        (isDark ? AppColors.darkSurface : AppColors.surface);
+    final shadows = isDark
+        ? [const BoxShadow(color: Color(0x28000000), blurRadius: 12, offset: Offset(0, 4))]
+        : AppShadows.card;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) {
@@ -66,11 +76,11 @@ class _AppCardState extends State<AppCard> {
         duration: const Duration(milliseconds: 100),
         padding: widget.padding,
         decoration: BoxDecoration(
-          color: widget.color ?? AppColors.surface,
+          color: cardBg,
           borderRadius: BorderRadius.circular(widget.radius),
           boxShadow: _pressed
-              ? [const BoxShadow(color: Color(0x30AEB7CE), blurRadius: 6, offset: Offset(2, 2))]
-              : AppShadows.card,
+              ? [const BoxShadow(color: Color(0x30000000), blurRadius: 6, offset: Offset(2, 2))]
+              : shadows,
         ),
         child: widget.child,
       ),
@@ -211,6 +221,10 @@ class StatPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final mutedColor = isDark ? AppColors.darkTextSecondary : AppColors.faint;
+
     return Expanded(
       child: AppCard(
         radius: 28,
@@ -228,7 +242,7 @@ class StatPill extends StatelessWidget {
               value,
               style: GoogleFonts.playfairDisplay(
                 fontSize: 42, fontWeight: FontWeight.w400,
-                fontStyle: FontStyle.italic, color: AppColors.text, height: 1.0,
+                fontStyle: FontStyle.italic, color: textColor, height: 1.0,
               ),
             ),
             const SizedBox(height: 6),
@@ -236,7 +250,7 @@ class StatPill extends StatelessWidget {
               label.toUpperCase(),
               style: GoogleFonts.dmSans(
                 fontSize: 10, fontWeight: FontWeight.w300,
-                color: AppColors.faint, letterSpacing: 0.8,
+                color: mutedColor, letterSpacing: 0.8,
               ),
             ),
           ],
@@ -320,6 +334,9 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor = isDark ? AppColors.darkTextSecondary : AppColors.faint;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16, top: 4),
       child: Row(
@@ -330,7 +347,7 @@ class SectionHeader extends StatelessWidget {
             title.toUpperCase(),
             style: GoogleFonts.dmSans(
               fontSize: 10, fontWeight: FontWeight.w300,
-              color: AppColors.faint, letterSpacing: 0.8,
+              color: mutedColor, letterSpacing: 0.8,
             ),
           ),
           const Spacer(),
@@ -372,6 +389,11 @@ class ReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final mutedColor = isDark ? AppColors.darkTextSecondary : AppColors.muted;
+    final faintColor = isDark ? AppColors.darkTextDisabled : AppColors.faint;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: AppCard(
@@ -391,7 +413,7 @@ class ReportCard extends StatelessWidget {
                         title,
                         style: GoogleFonts.dmSans(
                           fontSize: 15, fontWeight: FontWeight.w400,
-                          color: AppColors.text, height: 1.35,
+                          color: textColor, height: 1.35,
                         ),
                       ),
                       if (category != null) ...[
@@ -400,7 +422,7 @@ class ReportCard extends StatelessWidget {
                           category!,
                           style: GoogleFonts.dmSans(
                             fontSize: 10, fontWeight: FontWeight.w300,
-                            color: AppColors.faint, letterSpacing: 0.3,
+                            color: faintColor, letterSpacing: 0.3,
                           ),
                         ),
                       ],
@@ -417,7 +439,7 @@ class ReportCard extends StatelessWidget {
                 description!,
                 style: GoogleFonts.dmSans(
                   fontSize: 12, fontWeight: FontWeight.w300,
-                  color: AppColors.muted, height: 1.55,
+                  color: mutedColor, height: 1.55,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -430,11 +452,11 @@ class ReportCard extends StatelessWidget {
                   date,
                   style: GoogleFonts.dmSans(
                     fontSize: 10, fontWeight: FontWeight.w300,
-                    color: AppColors.faint, letterSpacing: 0.3,
+                    color: faintColor, letterSpacing: 0.3,
                   ),
                 ),
                 const Spacer(),
-                const Icon(Icons.arrow_forward, size: 14, color: AppColors.faint),
+                Icon(Icons.arrow_forward, size: 14, color: faintColor),
               ],
             ),
           ],
@@ -1034,6 +1056,12 @@ class MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconBg = isDark ? AppColors.darkSurfaceVariant : AppColors.bg;
+    final textColor = labelColor ?? (isDark ? AppColors.darkTextPrimary : AppColors.text);
+    final arrowColor = (labelColor ?? (isDark ? AppColors.darkTextSecondary : AppColors.faint)).withAlpha(128);
+    final dividerColor = isDark ? AppColors.darkBorder : AppColors.border;
+
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -1046,12 +1074,14 @@ class MenuItem extends StatelessWidget {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: AppColors.bg,
+                    color: iconBg,
                     borderRadius: BorderRadius.circular(10),
-                    boxShadow: const [
-                      BoxShadow(color: Color(0x40AEB7CE), blurRadius: 6, offset: Offset(2, 2)),
-                      BoxShadow(color: Color(0xE6FFFFFF), blurRadius: 6, offset: Offset(-2, -2)),
-                    ],
+                    boxShadow: isDark
+                        ? null
+                        : const [
+                            BoxShadow(color: Color(0x40AEB7CE), blurRadius: 6, offset: Offset(2, 2)),
+                            BoxShadow(color: Color(0xE6FFFFFF), blurRadius: 6, offset: Offset(-2, -2)),
+                          ],
                   ),
                   child: Icon(icon, size: 15, color: iconColor ?? AppColors.muted),
                 ),
@@ -1061,20 +1091,16 @@ class MenuItem extends StatelessWidget {
                     label,
                     style: GoogleFonts.dmSans(
                       fontSize: 13, fontWeight: FontWeight.w300,
-                      color: labelColor ?? AppColors.text,
+                      color: textColor,
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 12,
-                  color: (labelColor ?? AppColors.faint).withOpacity(0.5),
-                ),
+                Icon(Icons.arrow_forward_ios, size: 12, color: arrowColor),
               ],
             ),
           ),
           if (showDivider)
-            const Divider(height: 1, indent: 20, endIndent: 20, color: AppColors.border),
+            Divider(height: 1, indent: 20, endIndent: 20, color: dividerColor),
         ],
       ),
     );
