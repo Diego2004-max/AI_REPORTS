@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.21.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,19 +16,18 @@ serve(async (req) => {
     const body = await req.json();
     const { action, ...params } = body;
 
-    const geminiKey = Deno.env.get("GEMINI_API_KEY") ?? "";
+    const groqKey = Deno.env.get("GROQ_API_KEY") ?? "";
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const genAI = new GoogleGenerativeAI(geminiKey);
 
     let result: Record<string, unknown>;
 
     switch (action) {
       case "classify":
         result = await classifyReport(
-          genAI,
+          groqKey,
           params.description as string,
           params.location as string | undefined,
         );
@@ -67,13 +65,12 @@ serve(async (req) => {
 // ── classify ────────────────────────────────────────────────────────────────
 
 async function classifyReport(
-  genAI: GoogleGenerativeAI,
+  groqKey: string,
   description: string,
   location?: string,
 ): Promise<Record<string, unknown>> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-  const prompt = `Eres un clasificador de reportes viales de la ciudad de Pasto, Colombia.
+  const systemPrompt =
+    `Eres un clasificador de reportes viales de la ciudad de Pasto, Colombia.
 Clasifica el reporte en UNA de estas categorías:
 - Accidente de tránsito
 - Infraestructura
@@ -86,12 +83,40 @@ Extrae también:
 - ubicacion_sensible: boolean (¿menciona hospital, colegio, vía principal?)
 - impacto_vial: boolean (¿bloquea o afecta el tránsito?)
 
-Responde SOLO en JSON sin markdown.
+Responde SOLO en JSON sin markdown.`;
 
-Descripción: "${description}"${location ? `\nUbicación: "${location}"` : ""}`;
+  const userMessage = location
+    ? `Descripción: "${description}"\nUbicación: "${location}"`
+    : `Descripción: "${description}"`;
 
-  const result = await model.generateContent(prompt);
-  const raw = result.response.text().trim();
+  const response = await fetch(
+    "https://api.groq.com/openai/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${groqKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-8b-instant",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userMessage },
+        ],
+        temperature: 0.1,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Groq API error ${response.status}: ${err}`);
+  }
+
+  const groqBody = await response.json() as {
+    choices: Array<{ message: { content: string } }>;
+  };
+  const raw = groqBody.choices[0].message.content.trim();
   const cleaned = raw
     .replace(/```json\s*/g, "")
     .replace(/```\s*/g, "")
@@ -100,8 +125,8 @@ Descripción: "${description}"${location ? `\nUbicación: "${location}"` : ""}`;
   const parsed = JSON.parse(cleaned) as Record<string, unknown>;
 
   const category = (parsed.category as string) ?? "Accidente de tránsito";
-  const severity = (parsed.severidad as string) ??
-    (parsed.severity as string) ?? "media";
+  const severity =
+    (parsed.severidad as string) ?? (parsed.severity as string) ?? "media";
 
   // Confidence based on how well category maps to known values
   const knownCategories = [
@@ -117,10 +142,14 @@ Descripción: "${description}"${location ? `\nUbicación: "${location}"` : ""}`;
     category,
     confidence,
     severity,
-    sensitive_location: (parsed.ubicacion_sensible as boolean) ??
-      (parsed.sensitive_location as boolean) ?? false,
-    road_impact: (parsed.impacto_vial as boolean) ??
-      (parsed.road_impact as boolean) ?? false,
+    sensitive_location:
+      (parsed.ubicacion_sensible as boolean) ??
+      (parsed.sensitive_location as boolean) ??
+      false,
+    road_impact:
+      (parsed.impacto_vial as boolean) ??
+      (parsed.road_impact as boolean) ??
+      false,
   };
 }
 

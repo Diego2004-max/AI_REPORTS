@@ -86,6 +86,13 @@ class ReportRepositoryImpl {
     await _client.from('reports').delete().eq('id', reportId);
   }
 
+  Future<void> updateStatus(String reportId, String status) async {
+    await _client
+        .from('reports')
+        .update({'status': status})
+        .eq('id', reportId);
+  }
+
   ReportModel _fromRow(Map<String, dynamic> row) {
     final imageUrl = row['image_url'] as String?;
 
