@@ -299,10 +299,11 @@ class _CreateWrittenReportScreenState
 
   @override
   Widget build(BuildContext context) {
+    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: Colors.transparent, // Let gradient handle it or keep solid
+        backgroundColor: Colors.transparent,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         flexibleSpace: Container(
@@ -365,8 +366,8 @@ class _CreateWrittenReportScreenState
                               decoration: BoxDecoration(
                                 color: AppColors.primary,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 4),
-                                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                                border: Border.all(color: AppColors.onPrimary, width: 4),
+                                boxShadow: const [BoxShadow(color: AppColors.shadowDark, blurRadius: 4)],
                               ),
                             ),
                           ),
@@ -509,9 +510,9 @@ class _CreateWrittenReportScreenState
                       padding: const EdgeInsets.all(4),
                       child: Row(
                         children: [
-                          _buildSeverityButton('Leve', const Color(0xFF1D9E75)),
-                          _buildSeverityButton('Moderado', const Color(0xFFEF9F27)),
-                          _buildSeverityButton('Crítico', const Color(0xFFE24B4A)),
+                          _buildSeverityButton('Leve', AppColors.success),
+                          _buildSeverityButton('Moderado', AppColors.warning),
+                          _buildSeverityButton('Crítico', AppColors.error),
                         ],
                       ),
                     ),
@@ -687,9 +688,9 @@ class _CreateWrittenReportScreenState
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
+            color: isSelected ? AppColors.surface : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
-            boxShadow: isSelected ? [BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 4, offset: const Offset(0, 2))] : [],
+            boxShadow: isSelected ? [BoxShadow(color: AppColors.shadowDark.withAlpha(10), blurRadius: 4, offset: const Offset(0, 2))] : [],
             border: isSelected ? Border.all(color: AppColors.border.withAlpha(40)) : null,
           ),
           child: Row(

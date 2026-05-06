@@ -57,8 +57,12 @@ class _ReportListScreenState extends ConsumerState<ReportListScreen> {
   Widget build(BuildContext context) {
     final reportsAsync = ref.watch(allReportsProvider);
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final titleColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: AppBackground(
         child: SafeArea(
           child: Column(
@@ -75,7 +79,7 @@ class _ReportListScreenState extends ConsumerState<ReportListScreen> {
                         fontSize: 30,
                         fontWeight: FontWeight.w400,
                         fontStyle: FontStyle.italic,
-                        color: AppColors.text,
+                        color: titleColor,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -134,6 +138,7 @@ class _ReportListScreenState extends ConsumerState<ReportListScreen> {
                             status: _toStatus(report.status),
                             date: '${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
                             category: report.category,
+                            heroTag: 'status_${report.id}',
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
