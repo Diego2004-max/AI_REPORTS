@@ -42,8 +42,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     try {
       final user = await ref.read(authRepositoryProvider).register(
-            fullName: _nameCtrl.text,
-            email: _emailCtrl.text,
+            fullName: _nameCtrl.text.trim(),
+            email: _emailCtrl.text.trim(),
             password: _passwordCtrl.text,
           );
 
@@ -135,6 +135,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           if (value == null || value.trim().isEmpty) {
                             return 'Ingresa tu correo';
                           }
+                          final emailRegex = RegExp(r'^[\w\-\.]+@([\w\-]+\.)+[\w]{2,4}$');
+                          if (!emailRegex.hasMatch(value.trim())) {
+                            return 'Correo no válido';
+                          }
                           return null;
                         },
                       ),
@@ -145,8 +149,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         controller: _passwordCtrl,
                         obscureText: true,
                         validator: (value) {
-                          if (value == null || value.length < 6) {
-                            return 'Mínimo 6 caracteres';
+                          if (value == null || value.isEmpty) {
+                            return 'Ingresa tu contraseña';
+                          }
+                          if (value.length < 8) {
+                            return 'Mínimo 8 caracteres';
+                          }
+                          if (!RegExp(r'\d').hasMatch(value)) {
+                            return 'Debe contener al menos un número';
                           }
                           return null;
                         },
