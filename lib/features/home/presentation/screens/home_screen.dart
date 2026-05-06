@@ -21,8 +21,21 @@ class HomeScreen extends ConsumerWidget {
     final recentAsync = ref.watch(recentUserReportsProvider(3));
     final firstName = session.userName?.split(' ').first ?? 'Usuario';
 
+    final hour = DateTime.now().hour;
+    final greeting = hour < 12
+        ? 'buenos días'
+        : hour < 18
+            ? 'buenas tardes'
+            : 'buenas noches';
+
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final greetingColor = isDark ? AppColors.darkTextSecondary : AppColors.muted;
+    final nameColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final errorColor = isDark ? AppColors.darkTextSecondary : AppColors.muted;
+
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: AppBackground(
         child: SafeArea(
           child: Column(
@@ -34,27 +47,43 @@ class HomeScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'buenos días',
-                            style: GoogleFonts.dmSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w300,
-                              color: AppColors.muted,
-                            ),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 400),
+                        switchInCurve: Curves.easeOut,
+                        switchOutCurve: Curves.easeIn,
+                        transitionBuilder: (child, animation) => FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.15),
+                              end: Offset.zero,
+                            ).animate(animation),
+                            child: child,
                           ),
-                          Text(
-                            firstName,
-                            style: GoogleFonts.playfairDisplay(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w400,
-                              fontStyle: FontStyle.italic,
-                              color: AppColors.text,
+                        ),
+                        child: Column(
+                          key: ValueKey(firstName),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              greeting,
+                              style: GoogleFonts.dmSans(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w300,
+                                color: greetingColor,
+                              ),
                             ),
-                          ),
-                        ],
+                            Text(
+                              firstName,
+                              style: GoogleFonts.playfairDisplay(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w400,
+                                fontStyle: FontStyle.italic,
+                                color: nameColor,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     GestureDetector(
@@ -81,7 +110,10 @@ class HomeScreen extends ConsumerWidget {
                     padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
                     child: statsAsync.when(
                       loading: () => const SizedBox.shrink(),
-                      error: (e, _) => Text(e.toString()),
+                      error: (e, _) => Text(
+                        e.toString(),
+                        style: TextStyle(color: errorColor, fontSize: 13),
+                      ),
                       data: (stats) => Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -106,7 +138,10 @@ class HomeScreen extends ConsumerWidget {
                           const SectionHeader(title: 'Recientes'),
                           recentAsync.when(
                             loading: () => const SizedBox.shrink(),
-                            error: (e, _) => Text(e.toString()),
+                            error: (e, _) => Text(
+                              e.toString(),
+                              style: TextStyle(color: errorColor, fontSize: 13),
+                            ),
                             data: (reports) {
                               if (reports.isEmpty) {
                                 return const EmptyState(
@@ -124,6 +159,7 @@ class HomeScreen extends ConsumerWidget {
                                         status: ReportStatusExt.fromString(report.status),
                                         date: '${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
                                         category: report.category,
+                                        heroTag: 'status_${report.id}',
                                         onTap: () => Navigator.push(
                                           context,
                                           MaterialPageRoute(
@@ -200,32 +236,33 @@ class _AnalyticsShortcut extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+
+    return AppCard(
+      radius: 16,
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
       onTap: onTap,
-      child: AppCard(
-        radius: 16,
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: color.withAlpha(20),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, size: 16, color: color),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withAlpha(20),
+              borderRadius: BorderRadius.circular(8),
             ),
-            const SizedBox(width: 10),
-            Text(
-              label,
-              style: GoogleFonts.dmSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppColors.text,
-              ),
+            child: Icon(icon, size: 16, color: color),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: GoogleFonts.dmSans(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: textColor,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
