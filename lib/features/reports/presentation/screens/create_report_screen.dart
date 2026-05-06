@@ -122,7 +122,7 @@ class CreateReportScreen extends StatelessWidget {
                             const SizedBox(height: 16),
                             const _FlowPoint(text: 'Título obligatorio'),
                             const _FlowPoint(text: 'Categoría obligatoria'),
-                            const _FlowPoint(text: 'Descripción obligatoria'),
+                            const _FlowPoint(text: 'Descripción opcional'),
                             const _FlowPoint(text: 'Ubicación obligatoria'),
                             const _FlowPoint(text: 'Imagen opcional'),
                             const SizedBox(height: 20),

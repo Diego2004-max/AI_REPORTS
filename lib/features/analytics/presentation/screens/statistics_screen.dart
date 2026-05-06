@@ -226,7 +226,8 @@ class _BarChart extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: stats.map((s) {
-                final ratio = s.count / maxValue;
+                final safeMax = maxValue > 0 ? maxValue : 1;
+                final ratio = s.count / safeMax;
                 final isToday = _isToday(s.date);
                 return Expanded(
                   child: Padding(

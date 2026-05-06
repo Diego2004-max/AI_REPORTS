@@ -82,6 +82,17 @@ class AppShadows {
   static const List<BoxShadow> accentGlow = [
     BoxShadow(color: Color(0x402B4BFF), blurRadius: 18, offset: Offset(0, 6)),
   ];
+
+  // Dark mode shadows — simple drop shadows (neumorphic doesn't work on dark)
+  static const List<BoxShadow> darkCard = [
+    BoxShadow(color: Color(0x28000000), blurRadius: 12, offset: Offset(0, 4)),
+  ];
+  static const List<BoxShadow> darkFloat = [
+    BoxShadow(color: Color(0x40000000), blurRadius: 20, offset: Offset(0, 8)),
+  ];
+  static const List<BoxShadow> darkPressed = [
+    BoxShadow(color: Color(0x30000000), blurRadius: 6, offset: Offset(2, 2)),
+  ];
 }
 
 // ── V3: COMPONENT SIZES ───────────────────────────────────────────────────────

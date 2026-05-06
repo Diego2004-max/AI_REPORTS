@@ -61,7 +61,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ? Border(
               bottom: BorderSide(
                 color: isDark
-                    ? const Color(0xFF26364D)
+                    ? AppColors.darkBorder
                     : AppColors.border.withAlpha(80),
               ),
             )
@@ -72,11 +72,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               icon: Container(
                 padding: const EdgeInsets.all(AppSpacing.xs),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1B2940) : Colors.white,
+                  color: isDark ? AppColors.darkSurface : Colors.white,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                   border: Border.all(
-                    color:
-                        isDark ? const Color(0xFF26364D) : AppColors.border,
+                    color: isDark ? AppColors.darkBorder : AppColors.border,
                   ),
                 ),
                 child: Icon(
@@ -96,12 +95,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.3,
+                    color: fg,
                   ),
                 ),
                 Text(
                   subtitle!,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -111,6 +111,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.3,
+                color: fg,
               ),
             ),
       actions: actions != null

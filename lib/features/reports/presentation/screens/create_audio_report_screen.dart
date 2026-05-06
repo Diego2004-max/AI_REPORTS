@@ -273,7 +273,7 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -422,7 +422,7 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
                         child: Icon(
                           _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
                           size: 40,
-                          color: _isRecording ? Colors.white : AppColors.primary,
+                          color: _isRecording ? AppColors.onPrimary : AppColors.primary,
                         ),
                       ),
                     ),

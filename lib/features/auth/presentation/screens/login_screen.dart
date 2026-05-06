@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:reportes_ai/app/router/app_router.dart';
 import 'package:reportes_ai/app/theme/app_colors.dart';
+import 'package:reportes_ai/app/theme/app_spacing.dart';
 import 'package:reportes_ai/shared/widgets/shared_widgets.dart';
 import 'package:reportes_ai/state/auth_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
@@ -27,6 +29,64 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _showForgotPassword() async {
+    final emailCtrl = TextEditingController(text: _emailCtrl.text.trim());
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Recuperar contraseña'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.',
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              TextField(
+                controller: emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Correo electrónico',
+                  prefixIcon: Icon(Icons.mail_outline_rounded),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final email = emailCtrl.text.trim();
+                Navigator.pop(dialogContext);
+                if (email.isEmpty) return;
+                try {
+                  await Supabase.instance.client.auth.resetPasswordForEmail(email);
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Revisa tu correo para restablecer tu contraseña.'),
+                    ),
+                  );
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                  );
+                }
+              },
+              child: const Text('Enviar'),
+            ),
+          ],
+        );
+      },
+    );
+    emailCtrl.dispose();
   }
 
   Future<void> _onLogin() async {
@@ -61,13 +121,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: AppBackground(
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 22),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 56),
+                  const SizedBox(height: AppSpacing.huge),
                   const Center(child: BrandMark(size: 64)),
                   const SizedBox(height: 28),
                   Text(
@@ -80,7 +140,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       color: AppColors.text,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     'Inicia sesión en tu cuenta',
                     textAlign: TextAlign.center,
@@ -91,7 +151,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       height: 1.6,
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: AppSpacing.xxxl),
                   AppTextField(
                     label: 'Correo electrónico',
                     placeholder: 'usuario@ejemplo.com',
@@ -116,22 +176,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onFieldSubmitted: (_) => _onLogin(),
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Ingresa tu contraseña';
-                      if (value.length < 6) return 'Mínimo 6 caracteres';
+                      if (value.length < 8) return 'Mínimo 8 caracteres';
+                      if (!RegExp(r'\d').hasMatch(value)) return 'Debe contener al menos un número';
                       return null;
                     },
                   ),
                   Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom: 24),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.xl),
                       child: GestureDetector(
-                        onTap: () {},
+                        onTap: _showForgotPassword,
                         child: Text(
                           '¿Olvidaste tu contraseña?',
                           style: GoogleFonts.dmSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w300,
-                            color: AppColors.faint,
+                            color: AppColors.accent,
                           ),
                         ),
                       ),
@@ -142,7 +203,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: _onLogin,
                     loading: _isLoading,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   Row(
                     children: [
                       Expanded(child: Container(height: 1, color: AppColors.border)),
@@ -160,7 +221,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Expanded(child: Container(height: 1, color: AppColors.border)),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   PrimaryButton(
                     ghost: true,
                     label: 'Continuar con Google',
@@ -170,7 +231,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.xxl),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -195,7 +256,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.xxl),
                 ],
               ),
             ),

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reportes_ai/app/router/app_router.dart';
 import 'package:reportes_ai/app/theme/app_colors.dart';
+import 'package:reportes_ai/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:reportes_ai/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:reportes_ai/features/settings/presentation/screens/theme_screen.dart';
 import 'package:reportes_ai/shared/widgets/custom_app_bar.dart';
@@ -50,13 +51,18 @@ class SettingsScreen extends ConsumerWidget {
                 MenuItem(
                   icon: Icons.notifications_none_rounded,
                   label: 'Notificaciones',
-                  onTap: () {},
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                  ),
                 ),
                 MenuItem(
                   icon: Icons.shield_outlined,
                   label: 'Privacidad',
                   showDivider: false,
-                  onTap: () {},
+                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Configuración de privacidad próximamente.')),
+                  ),
                 ),
               ],
             ),
@@ -86,7 +92,7 @@ class SettingsScreen extends ConsumerWidget {
                   icon: Icons.help_outline_rounded,
                   label: 'Ayuda y soporte',
                   showDivider: false,
-                  onTap: () {},
+                  onTap: () => _showAbout(context),
                 ),
               ],
             ),

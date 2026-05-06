@@ -3,13 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:reportes_ai/app/theme/app_colors.dart';
 import 'package:reportes_ai/app/theme/app_spacing.dart';
 
-// ══════════════════════════════════════════════════════════════════════════════
-// REPORTIA — Shared Widgets v3
-// Estilo: Minimal Elegant · Neumórfico suave · Sin emojis
-// Tipografía: Playfair Display + DM Sans w200–300
-// ══════════════════════════════════════════════════════════════════════════════
-
-// ── FONDO BASE ────────────────────────────────────────────────────────────────
+// ── BACKGROUND ────────────────────────────────────────────────────────────────
 class AppBackground extends StatelessWidget {
   final Widget child;
   const AppBackground({super.key, required this.child});
@@ -23,8 +17,8 @@ class AppBackground extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? const [Color(0xFF1C2033), Color(0xFF1A1F30), Color(0xFF1C2033)]
-              : const [Color(0xFFE8ECF3), Color(0xFFDFE4EE), Color(0xFFE8ECF3)],
+              ? const [AppColors.darkBg, AppColors.darkBg2, AppColors.darkBg]
+              : const [AppColors.bg, AppColors.bg2, AppColors.bg],
         ),
       ),
       child: child,
@@ -32,7 +26,7 @@ class AppBackground extends StatelessWidget {
   }
 }
 
-// ── NEUMORPHIC PRESSABLE CARD ─────────────────────────────────────────────────
+// ── PRESSABLE CARD ────────────────────────────────────────────────────────────
 class AppCard extends StatefulWidget {
   final Widget child;
   final double radius;
@@ -61,9 +55,7 @@ class _AppCardState extends State<AppCard> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = widget.color ??
         (isDark ? AppColors.darkSurface : AppColors.surface);
-    final shadows = isDark
-        ? [const BoxShadow(color: Color(0x28000000), blurRadius: 12, offset: Offset(0, 4))]
-        : AppShadows.card;
+    final shadows = isDark ? AppShadows.darkCard : AppShadows.card;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
@@ -78,9 +70,7 @@ class _AppCardState extends State<AppCard> {
         decoration: BoxDecoration(
           color: cardBg,
           borderRadius: BorderRadius.circular(widget.radius),
-          boxShadow: _pressed
-              ? [const BoxShadow(color: Color(0x30000000), blurRadius: 6, offset: Offset(2, 2))]
-              : shadows,
+          boxShadow: _pressed ? AppShadows.darkPressed : shadows,
         ),
         child: widget.child,
       ),
@@ -88,7 +78,7 @@ class _AppCardState extends State<AppCard> {
   }
 }
 
-// ── BRAND MARK ────────────────────────────────────────────────────────────────
+// ── BRAND MARK (CustomPaint) ──────────────────────────────────────────────────
 class BrandMark extends StatelessWidget {
   final double size;
   const BrandMark({super.key, this.size = 64});
@@ -129,7 +119,7 @@ class _BrandPainter extends CustomPainter {
     paint.color = Colors.white.withOpacity(0.7);
     canvas.drawRRect(RRect.fromLTRBR(25 * w, 2 * h, 32 * w, 32 * h, const Radius.circular(2)), paint);
 
-    // Accent dot — único toque de color
+    // Accent dot — single color highlight
     paint.color = AppColors.success;
     canvas.drawCircle(Offset(29 * w, 3 * h), 3.5 * w, paint);
   }
@@ -138,7 +128,7 @@ class _BrandPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ── REPORT STATUS ─────────────────────────────────────────────────────────────
+// ── REPORT STATUS ENUM ────────────────────────────────────────────────────────
 enum ReportStatus { enviado, enRevision, atendido, rechazado }
 
 extension ReportStatusExt on ReportStatus {
@@ -171,7 +161,7 @@ extension ReportStatusExt on ReportStatus {
   }
 }
 
-// ── STATUS BADGE — punto de color + texto silenciado ──────────────────────────
+// ── STATUS BADGE ──────────────────────────────────────────────────────────────
 class StatusBadge extends StatelessWidget {
   final ReportStatus status;
   const StatusBadge({super.key, required this.status});
@@ -206,7 +196,7 @@ class StatusBadge extends StatelessWidget {
   }
 }
 
-// ── STAT PILL ─────────────────────────────────────────────────────────────────
+// ── STAT PILL CARD ────────────────────────────────────────────────────────────
 class StatPill extends StatelessWidget {
   final String value;
   final String label;
@@ -260,7 +250,7 @@ class StatPill extends StatelessWidget {
   }
 }
 
-// ── RESOLUTION BAR ────────────────────────────────────────────────────────────
+// ── RESOLUTION PROGRESS BAR ───────────────────────────────────────────────────
 class ResolutionBar extends StatelessWidget {
   final int total;
   final int resolved;
@@ -270,6 +260,11 @@ class ResolutionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pct = total > 0 ? (resolved / total).clamp(0.0, 1.0) : 0.0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final labelColor = isDark ? AppColors.darkTextDisabled : AppColors.faint;
+    final percentColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final trackColor = isDark ? AppColors.darkSurfaceVariant : AppColors.bg2;
+    final fillColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
 
     return Column(
       children: [
@@ -281,7 +276,7 @@ class ResolutionBar extends StatelessWidget {
               'Tasa de resolución',
               style: GoogleFonts.dmSans(
                 fontSize: 10, fontWeight: FontWeight.w300,
-                color: AppColors.faint, letterSpacing: 0.8,
+                color: labelColor, letterSpacing: 0.8,
               ),
             ),
             const Spacer(),
@@ -289,7 +284,7 @@ class ResolutionBar extends StatelessWidget {
               '${(pct * 100).round()}%',
               style: GoogleFonts.playfairDisplay(
                 fontSize: 15, fontWeight: FontWeight.w400,
-                fontStyle: FontStyle.italic, color: AppColors.text,
+                fontStyle: FontStyle.italic, color: percentColor,
               ),
             ),
           ],
@@ -299,10 +294,10 @@ class ResolutionBar extends StatelessWidget {
           borderRadius: AppRadius.borderFull,
           child: Container(
             height: 6,
-            decoration: const BoxDecoration(
-              color: Color(0xFFDFE4EE),
+            decoration: BoxDecoration(
+              color: trackColor,
               borderRadius: AppRadius.borderFull,
-              boxShadow: [
+              boxShadow: isDark ? null : const [
                 BoxShadow(color: Color(0x50AEB7CE), blurRadius: 4, offset: Offset(2, 2)),
                 BoxShadow(color: Color(0xE6FFFFFF), blurRadius: 4, offset: Offset(-2, -2)),
               ],
@@ -311,8 +306,8 @@ class ResolutionBar extends StatelessWidget {
               widthFactor: pct,
               alignment: Alignment.centerLeft,
               child: Container(
-                decoration: const BoxDecoration(
-                  color: AppColors.text,
+                decoration: BoxDecoration(
+                  color: fillColor,
                   borderRadius: AppRadius.borderFull,
                 ),
               ),
@@ -376,6 +371,7 @@ class ReportCard extends StatelessWidget {
   final String date;
   final String? category;
   final VoidCallback? onTap;
+  final String? heroTag;
 
   const ReportCard({
     super.key,
@@ -385,6 +381,7 @@ class ReportCard extends StatelessWidget {
     required this.date,
     this.category,
     this.onTap,
+    this.heroTag,
   });
 
   @override
@@ -430,7 +427,15 @@ class ReportCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                StatusBadge(status: status),
+                heroTag != null
+                    ? Hero(
+                        tag: heroTag!,
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: StatusBadge(status: status),
+                        ),
+                      )
+                    : StatusBadge(status: status),
               ],
             ),
             if (description != null) ...[
@@ -483,30 +488,37 @@ class AppSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.darkSurface : AppColors.surface;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final hintColor = isDark ? AppColors.darkTextDisabled : AppColors.faint;
+    final iconColor = isDark ? AppColors.darkTextSecondary : AppColors.faint;
+    final shadows = isDark ? AppShadows.darkCard : AppShadows.soft;
+
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: bgColor,
         borderRadius: AppRadius.borderFull,
-        boxShadow: AppShadows.soft,
+        boxShadow: shadows,
       ),
       child: Row(
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 18, right: 10),
-            child: Icon(Icons.search, size: 16, color: AppColors.faint),
+          Padding(
+            padding: const EdgeInsets.only(left: 18, right: 10),
+            child: Icon(Icons.search, size: 16, color: iconColor),
           ),
           Expanded(
             child: TextField(
               controller: controller,
               onChanged: onChanged,
               style: GoogleFonts.dmSans(
-                fontSize: 13, fontWeight: FontWeight.w300, color: AppColors.text,
+                fontSize: 13, fontWeight: FontWeight.w300, color: textColor,
               ),
               decoration: InputDecoration(
                 hintText: hint ?? 'Buscar...',
                 hintStyle: GoogleFonts.dmSans(
-                  fontSize: 13, fontWeight: FontWeight.w300, color: AppColors.faint,
+                  fontSize: 13, fontWeight: FontWeight.w300, color: hintColor,
                 ),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
@@ -521,7 +533,7 @@ class AppSearchBar extends StatelessWidget {
               padding: const EdgeInsets.only(right: 8),
               child: GestureDetector(
                 onTap: onFilter,
-                child: const Icon(Icons.tune, size: 16, color: AppColors.faint),
+                child: Icon(Icons.tune, size: 16, color: iconColor),
               ),
             ),
         ],
@@ -545,23 +557,27 @@ class AppFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selectedBg = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final unselectedBg = isDark ? AppColors.darkSurface : AppColors.surface;
+    final selectedFg = isDark ? AppColors.darkBg : Colors.white;
+    final unselectedFg = isDark ? AppColors.darkTextSecondary : AppColors.muted;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? AppColors.text : AppColors.surface,
+          color: selected ? selectedBg : unselectedBg,
           borderRadius: AppRadius.borderFull,
-          boxShadow: selected
-              ? [const BoxShadow(color: Color(0x401C2033), blurRadius: 14, offset: Offset(0, 4))]
-              : AppShadows.soft,
+          boxShadow: selected ? AppShadows.darkPressed : (isDark ? AppShadows.darkCard : AppShadows.soft),
         ),
         child: Text(
           label,
           style: GoogleFonts.dmSans(
             fontSize: 12, fontWeight: FontWeight.w300,
-            color: selected ? Colors.white : AppColors.muted,
+            color: selected ? selectedFg : unselectedFg,
             letterSpacing: 0.3,
           ),
         ),
@@ -621,6 +637,11 @@ class _PrimaryButtonState extends State<PrimaryButton> {
       );
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final btnBg = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final btnFg = isDark ? AppColors.darkBg : Colors.white;
+    final btnShadow = isDark ? AppShadows.darkCard : AppShadows.float;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) {
@@ -633,24 +654,22 @@ class _PrimaryButtonState extends State<PrimaryButton> {
         height: 52,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.text,
+          color: btnBg,
           borderRadius: AppRadius.borderFull,
-          boxShadow: _pressed
-              ? []
-              : [const BoxShadow(color: Color(0x401C2033), blurRadius: 24, offset: Offset(0, 8))],
+          boxShadow: _pressed ? [] : btnShadow,
         ),
         child: Center(
           child: widget.loading
-              ? const SizedBox(
+              ? SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.white),
+                  child: CircularProgressIndicator(strokeWidth: 1.5, color: btnFg),
                 )
               : Text(
                   widget.label,
                   style: GoogleFonts.dmSans(
                     fontSize: 14, fontWeight: FontWeight.w300,
-                    color: Colors.white, letterSpacing: 0.6,
+                    color: btnFg, letterSpacing: 0.6,
                   ),
                 ),
         ),
@@ -690,6 +709,13 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.darkSurface : AppColors.surface;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final labelColor = isDark ? AppColors.darkTextDisabled : AppColors.faint;
+    final iconColor = isDark ? AppColors.darkTextSecondary : AppColors.faint;
+    final shadows = isDark ? AppShadows.darkCard : AppShadows.soft;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -699,15 +725,15 @@ class AppTextField extends StatelessWidget {
             label.toUpperCase(),
             style: GoogleFonts.dmSans(
               fontSize: 10, fontWeight: FontWeight.w300,
-              color: AppColors.faint, letterSpacing: 0.8,
+              color: labelColor, letterSpacing: 0.8,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: bgColor,
             borderRadius: AppRadius.borderLg,
-            boxShadow: AppShadows.soft,
+            boxShadow: shadows,
           ),
           child: TextFormField(
             controller: controller,
@@ -717,12 +743,12 @@ class AppTextField extends StatelessWidget {
             onFieldSubmitted: onFieldSubmitted,
             validator: validator,
             style: GoogleFonts.dmSans(
-              fontSize: 13, fontWeight: FontWeight.w300, color: AppColors.text,
+              fontSize: 13, fontWeight: FontWeight.w300, color: textColor,
             ),
             decoration: InputDecoration(
               hintText: placeholder,
               prefixIcon: prefixIcon != null
-                  ? Icon(prefixIcon, size: 16, color: AppColors.faint)
+                  ? Icon(prefixIcon, size: 16, color: iconColor)
                   : null,
               suffixIcon: suffix,
               errorText: errorText,
@@ -740,7 +766,7 @@ class AppTextField extends StatelessWidget {
   }
 }
 
-// ── NOTIFICATION TILE — línea lateral de color ────────────────────────────────
+// ── NOTIFICATION TILE ─────────────────────────────────────────────────────────
 class NotifTile extends StatelessWidget {
   final String title;
   final String message;
@@ -760,6 +786,10 @@ class NotifTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = lineColor ?? status?.dotColor ?? AppColors.accent;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final bodyColor = isDark ? AppColors.darkTextSecondary : AppColors.muted;
+    final dateColor = isDark ? AppColors.darkTextDisabled : AppColors.faint;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -783,7 +813,7 @@ class NotifTile extends StatelessWidget {
                     title,
                     style: GoogleFonts.dmSans(
                       fontSize: 13, fontWeight: FontWeight.w400,
-                      color: AppColors.text, letterSpacing: 0.2,
+                      color: titleColor, letterSpacing: 0.2,
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -791,7 +821,7 @@ class NotifTile extends StatelessWidget {
                     message,
                     style: GoogleFonts.dmSans(
                       fontSize: 12, fontWeight: FontWeight.w300,
-                      color: AppColors.muted, height: 1.55,
+                      color: bodyColor, height: 1.55,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -801,7 +831,7 @@ class NotifTile extends StatelessWidget {
                     date,
                     style: GoogleFonts.dmSans(
                       fontSize: 10, fontWeight: FontWeight.w300,
-                      color: AppColors.faint, letterSpacing: 0.3,
+                      color: dateColor, letterSpacing: 0.3,
                     ),
                   ),
                 ],
@@ -852,7 +882,7 @@ class UserAvatar extends StatelessWidget {
   }
 }
 
-// ── BOTTOM NAV — pill flotante, FAB oscuro ────────────────────────────────────
+// ── BOTTOM NAVIGATION BAR ─────────────────────────────────────────────────────
 class AppBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -874,18 +904,25 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navBg = isDark ? AppColors.darkSurface : AppColors.surface;
+    final fabBg = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final fabFg = isDark ? AppColors.darkBg : Colors.white;
+    final navShadows = isDark ? AppShadows.darkFloat : AppShadows.float;
+    final fabShadows = isDark ? AppShadows.darkCard : AppShadows.accentGlow;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
       child: Container(
         height: 64,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: navBg,
           borderRadius: AppRadius.borderFull,
-          boxShadow: AppShadows.float,
+          boxShadow: navShadows,
         ),
         child: Row(
           children: [
-            ..._items.sublist(0, 2).map(_buildItem),
+            ..._items.sublist(0, 2).map((item) => _buildItem(context, item)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2),
               child: GestureDetector(
@@ -893,26 +930,29 @@ class AppBottomNav extends StatelessWidget {
                 child: Container(
                   width: 46,
                   height: 46,
-                  decoration: const BoxDecoration(
-                    color: AppColors.text,
+                  decoration: BoxDecoration(
+                    color: fabBg,
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(color: Color(0x401C2033), blurRadius: 18, offset: Offset(0, 6)),
-                    ],
+                    boxShadow: fabShadows,
                   ),
-                  child: const Icon(Icons.add, color: Colors.white, size: 20),
+                  child: Icon(Icons.add, color: fabFg, size: 20),
                 ),
               ),
             ),
-            ..._items.sublist(2).map(_buildItem),
+            ..._items.sublist(2).map((item) => _buildItem(context, item)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildItem(_NavItem item) {
+  Widget _buildItem(BuildContext context, _NavItem item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final active = currentIndex == item.index;
+    final activeColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final inactiveColor = isDark ? AppColors.darkTextSecondary : AppColors.faint;
+    final itemColor = active ? activeColor : inactiveColor;
+
     return Expanded(
       child: GestureDetector(
         onTap: () => onTap(item.index),
@@ -923,7 +963,7 @@ class AppBottomNav extends StatelessWidget {
             Icon(
               active ? item.iconOn : item.icon,
               size: 20,
-              color: active ? AppColors.text : AppColors.faint,
+              color: itemColor,
             ),
             const SizedBox(height: 4),
             Text(
@@ -931,7 +971,7 @@ class AppBottomNav extends StatelessWidget {
               style: GoogleFonts.dmSans(
                 fontSize: 9,
                 fontWeight: active ? FontWeight.w400 : FontWeight.w300,
-                color: active ? AppColors.text : AppColors.faint,
+                color: itemColor,
                 letterSpacing: 0.4,
               ),
             ),
@@ -960,6 +1000,13 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconBg = isDark ? AppColors.darkSurface : AppColors.surface;
+    final iconColor = isDark ? AppColors.darkTextSecondary : AppColors.faint;
+    final titleColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final subtitleColor = isDark ? AppColors.darkTextSecondary : AppColors.muted;
+    final shadows = isDark ? AppShadows.darkFloat : AppShadows.float;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -970,18 +1017,18 @@ class EmptyState extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: iconBg,
                 borderRadius: AppRadius.borderXl,
-                boxShadow: AppShadows.float,
+                boxShadow: shadows,
               ),
-              child: Icon(icon, size: 28, color: AppColors.faint),
+              child: Icon(icon, size: 28, color: iconColor),
             ),
             const SizedBox(height: 20),
             Text(
               title,
               style: GoogleFonts.playfairDisplay(
                 fontSize: 22, fontWeight: FontWeight.w400,
-                fontStyle: FontStyle.italic, color: AppColors.text, height: 1.2,
+                fontStyle: FontStyle.italic, color: titleColor, height: 1.2,
               ),
               textAlign: TextAlign.center,
             ),
@@ -990,7 +1037,7 @@ class EmptyState extends StatelessWidget {
               subtitle,
               style: GoogleFonts.dmSans(
                 fontSize: 12, fontWeight: FontWeight.w300,
-                color: AppColors.muted, height: 1.55,
+                color: subtitleColor, height: 1.55,
               ),
               textAlign: TextAlign.center,
             ),
@@ -1011,6 +1058,10 @@ class ProfileStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultValueColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final labelColor = isDark ? AppColors.darkTextDisabled : AppColors.faint;
+
     return Expanded(
       child: Column(
         children: [
@@ -1018,7 +1069,9 @@ class ProfileStat extends StatelessWidget {
             value,
             style: GoogleFonts.playfairDisplay(
               fontSize: 22, fontWeight: FontWeight.w400,
-              fontStyle: FontStyle.italic, color: valueColor ?? AppColors.text, height: 1.2,
+              fontStyle: FontStyle.italic,
+              color: valueColor ?? defaultValueColor,
+              height: 1.2,
             ),
           ),
           const SizedBox(height: 5),
@@ -1026,7 +1079,7 @@ class ProfileStat extends StatelessWidget {
             label.toUpperCase(),
             style: GoogleFonts.dmSans(
               fontSize: 10, fontWeight: FontWeight.w300,
-              color: AppColors.faint, letterSpacing: 0.8,
+              color: labelColor, letterSpacing: 0.8,
             ),
           ),
         ],

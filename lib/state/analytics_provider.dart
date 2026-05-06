@@ -10,13 +10,13 @@ final analyticsRepositoryProvider = Provider<AnalyticsRepositoryImpl>((ref) {
   return AnalyticsRepositoryImpl(Supabase.instance.client);
 });
 
-/// Estadísticas de todos los reportes del sistema.
+/// Statistics for all reports in the system.
 final globalAnalyticsProvider = FutureProvider<AnalyticsSummary>((ref) {
   ref.watch(reportRefreshProvider);
   return ref.read(analyticsRepositoryProvider).getSummary();
 });
 
-/// Estadísticas solo del usuario autenticado.
+/// Statistics for the authenticated user only.
 final userAnalyticsProvider = FutureProvider<AnalyticsSummary>((ref) {
   ref.watch(reportRefreshProvider);
   final userId = ref.watch(sessionProvider).userId;
@@ -24,7 +24,7 @@ final userAnalyticsProvider = FutureProvider<AnalyticsSummary>((ref) {
   return ref.read(analyticsRepositoryProvider).getSummary(userId: userId);
 });
 
-/// Zonas de calor agrupadas por densidad de reportes.
+/// Hotspot zones grouped by report density.
 final hotspotsProvider = FutureProvider<List<HotspotZone>>((ref) {
   ref.watch(reportRefreshProvider);
   return ref.read(analyticsRepositoryProvider).getHotspots();

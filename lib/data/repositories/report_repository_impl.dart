@@ -27,70 +27,100 @@ class ReportRepositoryImpl {
     double? priorityScore,
     double? credibilityScore,
   }) async {
-    final cleanDescription = description.trim();
-    final cleanTitle = title.trim().isEmpty
-        ? _buildFallbackTitle(cleanDescription)
-        : title.trim();
+    try {
+      final cleanDescription = description.trim();
+      final cleanTitle = title.trim().isEmpty
+          ? _buildFallbackTitle(cleanDescription)
+          : title.trim();
 
-    final expiresAt = DateTime.now().add(const Duration(days: 10));
+      final expiresAt = DateTime.now().add(const Duration(days: 10));
 
-    final inserted = await _client
-        .from('reports')
-        .insert({
-          'user_id': userId,
-          'title': cleanTitle,
-          'description': cleanDescription,
-          'category': category,
-          'status': status,
-          'location_label': locationLabel,
-          'latitude': latitude,
-          'longitude': longitude,
-          'image_url': imagePaths.isNotEmpty ? imagePaths.first : null,
-          'audio_url': audioPath,
-          'expires_at': expiresAt.toIso8601String(),
-          if (aiCategory != null) 'ai_category': aiCategory,
-          if (aiConfidence != null) 'ai_confidence': aiConfidence,
-          if (priorityScore != null) 'priority_score': priorityScore,
-          if (credibilityScore != null) 'credibility_score': credibilityScore,
-        })
-        .select()
-        .single();
+      final inserted = await _client
+          .from('reports')
+          .insert({
+            'user_id': userId,
+            'title': cleanTitle,
+            'description': cleanDescription,
+            'category': category,
+            'status': status,
+            'location_label': locationLabel,
+            'latitude': latitude,
+            'longitude': longitude,
+            'image_url': imagePaths.isNotEmpty ? imagePaths.first : null,
+            'audio_url': audioPath,
+            'expires_at': expiresAt.toIso8601String(),
+            if (aiCategory != null) 'ai_category': aiCategory,
+            if (aiConfidence != null) 'ai_confidence': aiConfidence,
+            if (priorityScore != null) 'priority_score': priorityScore,
+            if (credibilityScore != null) 'credibility_score': credibilityScore,
+          })
+          .select()
+          .single();
 
-    return _fromRow(inserted);
+      return _fromRow(inserted);
+    } on PostgrestException catch (e) {
+      throw Exception('Error al crear reporte: ${e.message}');
+    } catch (e) {
+      throw Exception('No se pudo guardar el reporte. Verifica tu conexión.');
+    }
   }
 
   Future<List<ReportModel>> getReportsByUserId(String userId) async {
-    final rows = await _client
-        .from('reports')
-        .select()
-        .eq('user_id', userId)
-        .order('created_at', ascending: false);
+    try {
+      final rows = await _client
+          .from('reports')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
 
-    return (rows as List)
-        .map((row) => _fromRow(Map<String, dynamic>.from(row as Map)))
-        .toList();
+      return (rows as List)
+          .map((row) => _fromRow(Map<String, dynamic>.from(row as Map)))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw Exception('Error al obtener reportes: ${e.message}');
+    } catch (e) {
+      throw Exception('No se pudieron cargar tus reportes.');
+    }
   }
 
   Future<List<ReportModel>> getAllReports() async {
-    final rows = await _client
-        .from('reports')
-        .select()
-        .order('created_at', ascending: false);
+    try {
+      final rows = await _client
+          .from('reports')
+          .select()
+          .order('created_at', ascending: false);
 
-    return (rows as List)
-        .map((row) => _fromRow(Map<String, dynamic>.from(row as Map)))
-        .toList();
+      return (rows as List)
+          .map((row) => _fromRow(Map<String, dynamic>.from(row as Map)))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw Exception('Error al obtener reportes: ${e.message}');
+    } catch (e) {
+      throw Exception('No se pudieron cargar los reportes.');
+    }
   }
 
   Future<void> deleteReport(String reportId) async {
-    await _client.from('reports').delete().eq('id', reportId);
+    try {
+      await _client.from('reports').delete().eq('id', reportId);
+    } on PostgrestException catch (e) {
+      throw Exception('Error al eliminar reporte: ${e.message}');
+    } catch (e) {
+      throw Exception('No se pudo eliminar el reporte.');
+    }
   }
 
   Future<void> updateStatus(String reportId, String status) async {
-    await _client
-        .from('reports')
-        .update({'status': status})
-        .eq('id', reportId);
+    try {
+      await _client
+          .from('reports')
+          .update({'status': status})
+          .eq('id', reportId);
+    } on PostgrestException catch (e) {
+      throw Exception('Error al actualizar estado: ${e.message}');
+    } catch (e) {
+      throw Exception('No se pudo actualizar el estado del reporte.');
+    }
   }
 
   ReportModel _fromRow(Map<String, dynamic> row) {

@@ -80,16 +80,24 @@ class ReportDetailScreen extends ConsumerWidget {
 
     if (confirmed != true) return;
 
-    await ref
-        .read(reportRepositoryProvider)
-        .updateStatus(report.id, UserReportStatus.attended);
-    refreshReports(ref);
+    try {
+      await ref
+          .read(reportRepositoryProvider)
+          .updateStatus(report.id, UserReportStatus.attended);
+      refreshReports(ref);
 
-    if (context.mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reporte marcado como atendido')),
-      );
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Reporte marcado como atendido')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
     }
   }
 
@@ -118,14 +126,22 @@ class ReportDetailScreen extends ConsumerWidget {
 
     if (confirmed != true) return;
 
-    await ref.read(reportRepositoryProvider).deleteReport(report.id);
-    refreshReports(ref);
+    try {
+      await ref.read(reportRepositoryProvider).deleteReport(report.id);
+      refreshReports(ref);
 
-    if (context.mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reporte eliminado correctamente')),
-      );
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Reporte eliminado correctamente')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
     }
   }
 
@@ -165,7 +181,13 @@ class ReportDetailScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      StatusBadge(status: report.status, showIcon: true),
+                      Hero(
+                        tag: 'status_${report.id}',
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: StatusBadge(status: report.status, showIcon: true),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -193,7 +215,12 @@ class ReportDetailScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     report.description,
-                    style: theme.textTheme.bodyMedium?.copyWith(height: 1.55),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      height: 1.55,
+                      color: theme.brightness == Brightness.dark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.text,
+                    ),
                   ),
                 ],
               ),
@@ -217,7 +244,11 @@ class ReportDetailScreen extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           _buildExpirationLabel(),
-                          style: theme.textTheme.bodyMedium,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.brightness == Brightness.dark
+                                ? AppColors.darkTextPrimary
+                                : AppColors.text,
+                          ),
                         ),
                       ),
                     ],
@@ -228,7 +259,11 @@ class ReportDetailScreen extends ConsumerWidget {
                       padding: const EdgeInsets.only(left: 26),
                       child: Text(
                         'Fecha límite: ${_formatDate(report.expiresAt!)}',
-                        style: theme.textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.brightness == Brightness.dark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.muted,
+                        ),
                       ),
                     ),
                   ],
@@ -301,7 +336,11 @@ class ReportDetailScreen extends ConsumerWidget {
                       canDelete
                           ? 'Tú creaste este reporte. Puedes eliminarlo antes de su vencimiento.'
                           : 'Solo el usuario que creó este reporte puede eliminarlo.',
-                      style: theme.textTheme.bodyMedium,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.brightness == Brightness.dark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.text,
+                      ),
                     ),
                   ),
                 ],
@@ -346,10 +385,11 @@ class _CardLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text(
       text,
       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: AppColors.textSecondary,
+            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
             letterSpacing: 0.3,
           ),
     );
@@ -364,17 +404,20 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: AppColors.textSecondary),
+        Icon(icon, size: 16, color: color),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: color,
               height: 1.4,
             ),
           ),

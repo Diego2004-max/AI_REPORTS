@@ -41,7 +41,9 @@ class NotificationsScreen extends ConsumerWidget {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Todas las notificaciones marcadas como leídas.')),
+                      ),
                       child: Text(
                         'Leer todo',
                         style: GoogleFonts.dmSans(

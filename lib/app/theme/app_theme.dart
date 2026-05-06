@@ -138,9 +138,11 @@ class AppTheme {
       ).copyWith(
         primary: AppColors.accent,
         onPrimary: AppColors.onPrimary,
+        secondary: AppColors.success,
         surface: AppColors.darkSurface,
         onSurface: AppColors.darkTextPrimary,
         error: AppColors.error,
+        onError: AppColors.onPrimary,
         outline: AppColors.darkBorder,
       ),
       scaffoldBackgroundColor: AppColors.darkBg,
@@ -158,8 +160,86 @@ class AppTheme {
         ),
         iconTheme: const IconThemeData(color: AppColors.darkTextPrimary, size: 20),
       ),
+      cardTheme: const CardThemeData(
+        color: AppColors.darkSurface,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(24)),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.darkSurfaceVariant,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(24),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(24),
+          borderSide: const BorderSide(color: AppColors.darkBorder, width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(24),
+          borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(24),
+          borderSide: const BorderSide(color: AppColors.error, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(24),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+        ),
+        hintStyle: GoogleFonts.dmSans(
+          fontSize: 13, fontWeight: FontWeight.w300,
+          color: AppColors.darkTextDisabled,
+        ),
+        labelStyle: GoogleFonts.dmSans(
+          fontSize: 10, fontWeight: FontWeight.w300,
+          color: AppColors.darkTextSecondary, letterSpacing: 0.6,
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.darkTextPrimary,
+          foregroundColor: AppColors.darkBg,
+          minimumSize: const Size(double.infinity, 52),
+          shape: const StadiumBorder(),
+          textStyle: GoogleFonts.dmSans(
+            fontSize: 14, fontWeight: FontWeight.w300, letterSpacing: 0.6,
+          ),
+          elevation: 0,
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.darkTextPrimary,
+          foregroundColor: AppColors.darkBg,
+          minimumSize: const Size(double.infinity, 52),
+          shape: const StadiumBorder(),
+          textStyle: GoogleFonts.dmSans(
+            fontSize: 14, fontWeight: FontWeight.w300, letterSpacing: 0.6,
+          ),
+          elevation: 0,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.darkTextSecondary,
+          minimumSize: const Size(double.infinity, 52),
+          side: const BorderSide(color: AppColors.darkBorder, width: 1),
+          shape: const StadiumBorder(),
+          textStyle: GoogleFonts.dmSans(
+            fontSize: 14, fontWeight: FontWeight.w300, letterSpacing: 0.3,
+          ),
+        ),
+      ),
+      dividerTheme: const DividerThemeData(color: AppColors.darkBorder, thickness: 1),
+      iconTheme: const IconThemeData(color: AppColors.darkTextSecondary, size: 18),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.darkSurface,
+        backgroundColor: AppColors.darkSurfaceVariant,
         contentTextStyle: textTheme.bodyMedium?.copyWith(color: AppColors.darkTextPrimary),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
