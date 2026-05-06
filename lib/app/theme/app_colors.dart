@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 abstract final class AppColors {
   // ── V3: NEUMORPHIC BLUE-GRAY PALETTE ─────────────────────────────────────
 
-  // Backgrounds
+  // Background surfaces
   static const Color bg             = Color(0xFFE8ECF3);
   static const Color bg2            = Color(0xFFDFE4EE);
   static const Color surface        = Color(0xFFFFFFFF);
@@ -17,11 +17,11 @@ abstract final class AppColors {
   // Borders
   static const Color border = Color(0xFFD4DBE8);
 
-  // Único acento (electric blue)
+  // Primary accent (electric blue)
   static const Color accent     = Color(0xFF2B4BFF);
   static const Color accentSoft = Color(0x142B4BFF);
 
-  // Semantic (desaturados, silenciados)
+  // Semantic colors (desaturated, subdued)
   static const Color success     = Color(0xFF34C989);
   static const Color successSoft = Color(0x1234C989);
   static const Color warning     = Color(0xFFDC963C);
@@ -29,7 +29,7 @@ abstract final class AppColors {
   static const Color error       = Color(0xFFE05555);
   static const Color errorSoft   = Color(0x12E05555);
 
-  // Shadows neumórficas
+  // Neumorphic shadow pair
   static const Color shadowDark  = Color(0x8CAEB7CE);
   static const Color shadowLight = Color(0xE6FFFFFF);
 
@@ -64,6 +64,7 @@ abstract final class AppColors {
 
   // ── DARK MODE ─────────────────────────────────────────────────────────────
   static const Color darkBg             = Color(0xFF1C2033);
+  static const Color darkBg2            = Color(0xFF1A1F30); // subtle gradient stop
   static const Color darkSurface        = Color(0xFF252B40);
   static const Color darkSurfaceVariant = Color(0xFF2D3452);
   static const Color darkBorder         = Color(0xFF3D4566);
