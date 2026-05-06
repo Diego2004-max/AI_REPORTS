@@ -19,15 +19,19 @@ class VialCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkSurface : AppColors.surfaceContainerLowest;
+    final shadowColor = isDark ? Colors.black26 : AppColors.shadow;
+
     final cardContent = Container(
       padding: padding,
       margin: margin,
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: cardColor,
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow,
+            color: shadowColor,
             blurRadius: 40,
             offset: const Offset(0, 10),
             spreadRadius: 0,

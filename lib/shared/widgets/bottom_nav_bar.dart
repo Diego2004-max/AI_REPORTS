@@ -35,18 +35,20 @@ class AppBottomNavBar extends StatelessWidget {
             height: AppSpacing.bottomNavHeight + AppSpacing.md,
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             decoration: BoxDecoration(
-              color: isDark ? theme.cardColor : Colors.white,
+              color: isDark ? AppColors.darkSurface : AppColors.surface,
               borderRadius: BorderRadius.circular(28),
               border: Border.all(
-                color: isDark ? const Color(0xFF26364D) : AppColors.border,
+                color: isDark ? AppColors.darkBorder : AppColors.border,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(isDark ? 22 : 14),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+              boxShadow: isDark
+                  ? AppShadows.darkFloat
+                  : const [
+                      BoxShadow(
+                        color: Color(0x0E1C2033),
+                        blurRadius: 18,
+                        offset: Offset(0, 8),
+                      ),
+                    ],
             ),
             child: Row(
               children: [
@@ -138,7 +140,7 @@ class _NavItem extends StatelessWidget {
     final color = selected
         ? theme.colorScheme.primary
         : theme.brightness == Brightness.dark
-            ? const Color(0xFFB7C3D4)
+            ? AppColors.darkTextSecondary
             : AppColors.textSecondary;
 
     return InkWell(
