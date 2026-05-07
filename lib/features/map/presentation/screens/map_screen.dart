@@ -5,7 +5,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:reportes_ai/app/theme/app_spacing.dart';
 import 'package:reportes_ai/core/services/location_service.dart';
 import 'package:reportes_ai/shared/widgets/app_card.dart';
-import 'package:reportes_ai/shared/widgets/empty_state.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -88,18 +87,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               )
               .toSet();
 
-          if (markers.isEmpty) {
-            return const Padding(
-              padding: EdgeInsets.all(AppSpacing.screenH),
-              child: EmptyStateWidget(
-                icon: Icons.map_outlined,
-                title: 'Aún no hay reportes con ubicación',
-                subtitle:
-                    'Crea un reporte y permite capturar ubicación para verlo aquí.',
-              ),
-            );
-          }
-
           return Stack(
             children: [
               Positioned.fill(
@@ -143,7 +130,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Mostrando ${markers.length} reportes con ubicación',
+                              markers.isEmpty
+                                  ? 'Sin reportes aún. Crea uno para verlo aquí.'
+                                  : 'Mostrando ${markers.length} reportes con ubicación',
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],

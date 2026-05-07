@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reportes_ai/app/theme/app_colors.dart';
 import 'package:reportes_ai/app/theme/app_spacing.dart';
+import 'package:reportes_ai/features/reports/presentation/screens/report_list_screen.dart';
 import 'package:reportes_ai/shared/widgets/shared_widgets.dart';
 import 'package:reportes_ai/state/analytics_provider.dart';
 
@@ -40,16 +41,15 @@ class NotificationsScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Todas las notificaciones marcadas como leídas.')),
-                      ),
+                    // FIX: "Leer todo" deshabilitado (gris + tooltip) hasta integrar notificaciones en tiempo real
+                    Tooltip(
+                      message: 'Disponible pronto',
                       child: Text(
                         'Leer todo',
                         style: GoogleFonts.dmSans(
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
-                          color: AppColors.accent,
+                          color: AppColors.faint,
                         ),
                       ),
                     ),
@@ -61,52 +61,13 @@ class NotificationsScreen extends ConsumerWidget {
                 child: ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 22),
                   children: [
-                    Text(
-                      'HOY',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w300,
-                        color: AppColors.faint,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const NotifTile(
-                      title: 'Reporte atendido',
-                      message: 'Tu reporte "Hueco en la Cra 7" ha sido marcado como atendido por las autoridades.',
-                      date: 'Hace 5 min',
-                      status: ReportStatus.atendido,
-                    ),
-                    const NotifTile(
-                      title: 'Reporte en revisión',
-                      message: 'Las autoridades están revisando tu reporte "Semáforo dañado Av. 30". Te notificaremos cuando haya novedades.',
-                      date: 'Hace 2 horas',
-                      status: ReportStatus.enRevision,
-                    ),
-                    const NotifTile(
-                      title: 'Nuevo reporte cercano',
-                      message: 'Se reportó un accidente a 200 m de tu ubicación habitual en la Autopista Norte.',
-                      date: 'Hace 3 horas',
-                      lineColor: AppColors.accent,
-                    ),
-                    const SizedBox(height: 20),
-                    const Divider(color: AppColors.border, height: 1),
-                    const SizedBox(height: 20),
-                    Text(
-                      'AYER',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w300,
-                        color: AppColors.faint,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const NotifTile(
-                      title: 'Reporte rechazado',
-                      message: 'Tu reporte "Derrumbe vía al mar" fue revisado pero no se pudo verificar. Puedes enviar uno nuevo con más evidencia.',
-                      date: 'Ayer, 4:30 PM',
-                      status: ReportStatus.rechazado,
+                    // FIX: eliminados los 4 NotifTile con datos inventados
+                    // REQUISITO PENDIENTE: módulo de notificaciones en tiempo real — agente separado
+                    const EmptyState(
+                      icon: Icons.notifications_none_rounded,
+                      title: 'Sin notificaciones',
+                      subtitle:
+                          'Las notificaciones aparecerán aquí cuando se integre el módulo en tiempo real.',
                     ),
                     const SizedBox(height: 20),
                     _RiskSummaryCard(analyticsRef: ref),
@@ -116,7 +77,8 @@ class NotificationsScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.info_outline_rounded, size: 12, color: AppColors.faint),
+                        const Icon(Icons.info_outline_rounded,
+                            size: 12, color: AppColors.faint),
                         const SizedBox(width: 5),
                         Text(
                           'Predicciones de IA · No reemplazan a autoridades',
@@ -242,11 +204,20 @@ class _CategoryPredictions extends StatelessWidget {
         return Column(
           children: [
             for (int i = 0; i < cats.length; i++) ...[
+              // FIX: onTap navega a ReportListScreen con la categoría como filtro preseleccionado
               _PredictionTile(
                 title: cats[i].category,
                 level: _riskLabels[i % _riskLabels.length],
                 levelColor: _riskColors[i % _riskColors.length],
                 count: cats[i].count,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ReportListScreen(
+                      initialCategory: cats[i].category,
+                    ),
+                  ),
+                ),
               ),
               if (i < cats.length - 1) const SizedBox(height: 10),
             ],
@@ -262,12 +233,15 @@ class _PredictionTile extends StatelessWidget {
   final String level;
   final Color levelColor;
   final int count;
+  // FIX: onTap para navegar a ReportListScreen con categoría filtrada
+  final VoidCallback? onTap;
 
   const _PredictionTile({
     required this.title,
     required this.level,
     required this.levelColor,
     required this.count,
+    this.onTap,
   });
 
   @override
@@ -275,6 +249,7 @@ class _PredictionTile extends StatelessWidget {
     return AppCard(
       radius: 22,
       padding: const EdgeInsets.fromLTRB(0, 14, 14, 14),
+      onTap: onTap,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
