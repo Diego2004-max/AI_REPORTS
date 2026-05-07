@@ -16,7 +16,6 @@ import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
 import 'package:reportes_ai/shared/widgets/vial_card.dart';
 import 'package:reportes_ai/shared/widgets/vial_button.dart';
-import 'package:reportes_ai/shared/widgets/vial_text_field.dart';
 
 class CreateAudioReportScreen extends ConsumerStatefulWidget {
   const CreateAudioReportScreen({super.key});
@@ -26,7 +25,12 @@ class CreateAudioReportScreen extends ConsumerStatefulWidget {
       _CreateAudioReportScreenState();
 }
 
-class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScreen> {
+class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScreen>
+    with SingleTickerProviderStateMixin {
+
+  late AnimationController _pulseController;
+  late Animation<double> _pulseScale;
+  late Animation<double> _pulseOpacity;
   final _descriptionController = TextEditingController();
 
   final LocationService _locationService = LocationService();
@@ -64,11 +68,22 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
   @override
   void initState() {
     super.initState();
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 900),
+      vsync: this,
+    );
+    _pulseScale = Tween<double>(begin: 1.0, end: 1.4).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    _pulseOpacity = Tween<double>(begin: 0.5, end: 0.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeOut),
+    );
     _loadCurrentLocation();
   }
 
   @override
   void dispose() {
+    _pulseController.dispose();
     _descriptionController.dispose();
     _voiceService.dispose();
     _speechService.cancelListening();
@@ -100,6 +115,7 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
   Future<void> _startRecording() async {
     try {
       await _voiceService.startRecording();
+      _pulseController.repeat(reverse: true);
       setState(() {
         _isRecording = true;
         _audioPath = null;
@@ -125,6 +141,8 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
     try {
       final path = await _voiceService.stopRecording();
       await _speechService.stopListening();
+      _pulseController.stop();
+      _pulseController.reset();
       if (!mounted) return;
       setState(() {
         _isRecording = false;
@@ -175,6 +193,8 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
     if (_isRecording) {
       await _voiceService.cancelRecording();
       await _speechService.cancelListening();
+      _pulseController.stop();
+      _pulseController.reset();
     }
     if (!mounted) return;
     setState(() {
@@ -248,6 +268,7 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
             title: generatedTitle,
             description: description,
             category: _selectedCategory,
+            severity: _selectedSeverity,
             locationLabel: _locationLabel,
             latitude: _currentPosition?.latitude,
             longitude: _currentPosition?.longitude,
@@ -401,7 +422,60 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
               ),
               const SizedBox(height: 24),
 
-              // 3. Microphone specific Area
+              // 3. Severity selector
+              VialCard(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Severidad', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        {'label': 'Leve', 'color': AppColors.success},
+                        {'label': 'Moderado', 'color': AppColors.warning},
+                        {'label': 'Grave', 'color': AppColors.error},
+                      ].map((item) {
+                        final label = item['label'] as String;
+                        final color = item['color'] as Color;
+                        final isSelected = _selectedSeverity == label;
+                        return Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: GestureDetector(
+                              onTap: () => setState(() => _selectedSeverity = label),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? color.withAlpha(30) : AppColors.surfaceContainerLow,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isSelected ? color : Colors.transparent,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: Text(
+                                  label,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: isSelected ? color : AppColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // 4. Microphone specific Area
               VialCard(
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -410,19 +484,64 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
                     const SizedBox(height: 24),
                     GestureDetector(
                       onTap: _isRecording ? _stopRecording : _startRecording,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: _isRecording ? 100 : 80,
-                        height: _isRecording ? 100 : 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _isRecording ? AppColors.error : AppColors.primaryContainer.withAlpha(50),
-                          boxShadow: _isRecording ? [BoxShadow(color: AppColors.error.withAlpha(100), blurRadius: 20, spreadRadius: 10)] : [],
-                        ),
-                        child: Icon(
-                          _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
-                          size: 40,
-                          color: _isRecording ? AppColors.onPrimary : AppColors.primary,
+                      child: SizedBox(
+                        width: 160,
+                        height: 160,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (_isRecording) ...[
+                              AnimatedBuilder(
+                                animation: _pulseController,
+                                builder: (context, _) => Transform.scale(
+                                  scale: _pulseScale.value,
+                                  child: Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.error.withAlpha(
+                                        (_pulseOpacity.value * 80).round(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              AnimatedBuilder(
+                                animation: _pulseController,
+                                builder: (context, _) => Transform.scale(
+                                  scale: 1.0 + (_pulseScale.value - 1.0) * 0.5,
+                                  child: Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.error.withAlpha(
+                                        (_pulseOpacity.value * 130).round(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              width: _isRecording ? 100 : 80,
+                              height: _isRecording ? 100 : 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _isRecording ? AppColors.error : AppColors.primaryContainer.withAlpha(50),
+                                boxShadow: _isRecording
+                                    ? [BoxShadow(color: AppColors.error.withAlpha(100), blurRadius: 20, spreadRadius: 10)]
+                                    : [],
+                              ),
+                              child: Icon(
+                                _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
+                                size: 40,
+                                color: _isRecording ? AppColors.onPrimary : AppColors.primary,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -479,7 +598,7 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
               ),
               const SizedBox(height: 24),
 
-              // 4. Description Input
+              // 5. Description Input
               VialCard(
                 padding: const EdgeInsets.all(24),
                 child: Column(

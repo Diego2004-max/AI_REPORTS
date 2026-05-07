@@ -11,7 +11,6 @@ import 'package:reportes_ai/shared/widgets/app_card.dart';
 import 'package:reportes_ai/shared/widgets/custom_app_bar.dart';
 import 'package:reportes_ai/shared/widgets/primary_button.dart';
 import 'package:reportes_ai/shared/widgets/status_badge.dart';
-import 'package:reportes_ai/data/repositories/report_repository_impl.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
 
@@ -40,65 +39,29 @@ class ReportDetailScreen extends ConsumerWidget {
   String _buildExpirationLabel() {
     final expiresAt = report.expiresAt;
     if (expiresAt == null) {
-      return 'Este reporte no tiene fecha de eliminación configurada.';
+      return 'Este reporte no tiene fecha de resolución configurada.';
     }
 
     final now = DateTime.now();
     final difference = expiresAt.difference(now);
 
     if (difference.inSeconds <= 0) {
-      return 'Este reporte vence hoy y será eliminado automáticamente.';
+      return 'Este reporte fue marcado como atendido automáticamente.';
     }
 
-    final daysLeft = (difference.inHours / 24).ceil();
-    if (daysLeft == 1) return 'Este reporte se elimina en 1 día.';
-    return 'Este reporte se elimina en $daysLeft días.';
-  }
-
-  Future<void> _confirmResolve(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Marcar como resuelto'),
-          content: const Text(
-            '¿Confirmas que este problema ya fue atendido o resuelto en tu zona?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Confirmar'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmed != true) return;
-
-    try {
-      await ref
-          .read(reportRepositoryProvider)
-          .updateStatus(report.id, UserReportStatus.attended);
-      refreshReports(ref);
-
-      if (context.mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Reporte marcado como atendido')),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-        );
-      }
+    if (difference.inMinutes < 60) {
+      final mins = difference.inMinutes.clamp(1, 59);
+      return 'Se resuelve automáticamente en $mins ${mins == 1 ? "minuto" : "minutos"}.';
     }
+
+    // FIX: show days when the period is 24 hours or more
+    if (difference.inHours >= 24) {
+      final days = (difference.inHours / 24.0).ceil();
+      return 'Se resuelve automáticamente en $days ${days == 1 ? "día" : "días"}.';
+    }
+
+    final hours = (difference.inMinutes / 60.0).ceil();
+    return 'Se resuelve automáticamente en $hours ${hours == 1 ? "hora" : "horas"}.';
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
@@ -149,7 +112,8 @@ class ReportDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final session = ref.watch(sessionProvider);
-    final hasImage = report.imagePaths.isNotEmpty;
+    // FIX: validate that at least one path is non-empty (not just that the list is non-empty)
+    final hasImage = report.imagePaths.any((p) => p.isNotEmpty);
     final canDelete = session.userId == report.userId;
 
     return Scaffold(
@@ -347,18 +311,6 @@ class ReportDetailScreen extends ConsumerWidget {
               ),
             ),
 
-            // ── Resolve button ───────────────────────────────────────────
-            if (canDelete &&
-                report.status != UserReportStatus.attended) ...[
-              const SizedBox(height: AppSpacing.lg),
-              PrimaryButton(
-                label: 'Marcar como resuelto',
-                backgroundColor: AppColors.success.withAlpha(25),
-                foregroundColor: AppColors.success,
-                onPressed: () => _confirmResolve(context, ref),
-              ),
-            ],
-
             // ── Delete button ────────────────────────────────────────────
             if (canDelete) ...[
               const SizedBox(height: AppSpacing.md),
@@ -432,10 +384,47 @@ class _ReportImagePreview extends StatelessWidget {
 
   final String imagePath;
 
+  // FIX: detect network URLs and use Image.network; local paths use XFile as before
+  bool get _isNetworkUrl =>
+      imagePath.startsWith('http://') || imagePath.startsWith('https://');
+
   Future<Uint8List> _loadBytes() => XFile(imagePath).readAsBytes();
 
   @override
   Widget build(BuildContext context) {
+    // FIX: network path → Image.network with descriptive error
+    if (_isNetworkUrl) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        child: Image.network(
+          imagePath,
+          height: 220,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          loadingBuilder: (_, child, progress) => progress == null
+              ? child
+              : const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 18, height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      SizedBox(width: 12),
+                      Text('Cargando imagen...'),
+                    ],
+                  ),
+                ),
+          errorBuilder: (_, __, ___) => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text('No se pudo cargar desde la red.'),
+          ),
+        ),
+      );
+    }
+
+    // FIX: local path → FutureBuilder with XFile, descriptive error
     return FutureBuilder<Uint8List>(
       future: _loadBytes(),
       builder: (context, snapshot) {
@@ -445,8 +434,7 @@ class _ReportImagePreview extends StatelessWidget {
             child: Row(
               children: [
                 SizedBox(
-                  width: 18,
-                  height: 18,
+                  width: 18, height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
                 SizedBox(width: 12),
@@ -457,7 +445,10 @@ class _ReportImagePreview extends StatelessWidget {
         }
 
         if (snapshot.hasError || !snapshot.hasData) {
-          return const Text('No se pudo cargar la imagen adjunta.');
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text('Archivo no encontrado en el dispositivo.'),
+          );
         }
 
         return ClipRRect(

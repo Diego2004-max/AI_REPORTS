@@ -10,7 +10,12 @@ import 'package:reportes_ai/state/report_provider.dart';
 import 'report_detail_screen.dart';
 
 class ReportListScreen extends ConsumerStatefulWidget {
-  const ReportListScreen({super.key});
+  // FIX: accept optional initial category and status filter for navigation from external screens
+  const ReportListScreen({super.key, this.initialCategory, this.initialFilter});
+
+  final String? initialCategory;
+  // initialFilter matches the chip labels: 'Todos' | 'Activos' | 'Atendidos'
+  final String? initialFilter;
 
   @override
   ConsumerState<ReportListScreen> createState() => _ReportListScreenState();
@@ -20,8 +25,25 @@ class _ReportListScreenState extends ConsumerState<ReportListScreen> {
   final _searchCtrl = TextEditingController();
   String _selectedFilter = 'Todos';
   String _searchQuery = '';
+  // FIX: category filter populated from constructor for navigation from category tiles
+  String? _categoryFilter;
 
-  static const List<String> _filters = ['Todos', 'Enviados', 'En revisión', 'Atendidos'];
+  static const List<String> _filters = ['Todos', 'Activos', 'Atendidos'];
+
+  @override
+  void initState() {
+    super.initState();
+    _categoryFilter = widget.initialCategory;
+    if (_categoryFilter != null) {
+      _searchQuery = _categoryFilter!;
+      _searchCtrl.text = _categoryFilter!;
+    }
+    // FIX: apply status filter from constructor (e.g. 'Atendidos' from StatPill tap)
+    if (widget.initialFilter != null &&
+        _filters.contains(widget.initialFilter)) {
+      _selectedFilter = widget.initialFilter!;
+    }
+  }
 
   @override
   void dispose() {
@@ -32,15 +54,14 @@ class _ReportListScreenState extends ConsumerState<ReportListScreen> {
   ReportStatus _toStatus(String s) => ReportStatusExt.fromString(s);
 
   List<ReportModel> _applyFilters(List<ReportModel> reports) {
-    return reports.where((report) {
+    final filtered = reports.where((report) {
       bool matchesFilter = true;
       if (_selectedFilter != 'Todos') {
         final status = _toStatus(report.status);
         matchesFilter = switch (_selectedFilter) {
-          'Enviados'    => status == ReportStatus.enviado,
-          'En revisión' => status == ReportStatus.enRevision,
-          'Atendidos'   => status == ReportStatus.atendido,
-          _             => true,
+          'Activos'   => status == ReportStatus.active,
+          'Atendidos' => status == ReportStatus.atendido,
+          _           => true,
         };
       }
       final query = _searchQuery.toLowerCase().trim();
@@ -51,6 +72,16 @@ class _ReportListScreenState extends ConsumerState<ReportListScreen> {
           (report.locationLabel?.toLowerCase().contains(query) ?? false);
       return matchesFilter && matchesSearch;
     }).toList();
+
+    // FIX: sort so attended reports sink to the bottom; within each group, newest first
+    filtered.sort((a, b) {
+      final aA = a.status.toLowerCase().contains('atendido');
+      final bA = b.status.toLowerCase().contains('atendido');
+      if (aA != bA) return aA ? 1 : -1;
+      return b.createdAt.compareTo(a.createdAt);
+    });
+
+    return filtered;
   }
 
   @override
