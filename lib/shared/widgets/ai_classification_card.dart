@@ -6,12 +6,17 @@ class AiClassificationCard extends StatelessWidget {
   final AiClassification classification;
   final VoidCallback? onAcceptCategory;
   final VoidCallback? onAcceptSeverity;
+  // FIX: track whether each field is already applied to show "Editar" instead of "Aplicar"
+  final bool categoryAccepted;
+  final bool severityAccepted;
 
   const AiClassificationCard({
     super.key,
     required this.classification,
     this.onAcceptCategory,
     this.onAcceptSeverity,
+    this.categoryAccepted = false,
+    this.severityAccepted = false,
   });
 
   @override
@@ -63,19 +68,21 @@ class AiClassificationCard extends StatelessWidget {
           // Category suggestion
           _SuggestionRow(
             icon: Icons.category_rounded,
-            label: 'Categoría sugerida',
+            label: 'Categoría',
             value: classification.suggestedCategory,
             onAccept: onAcceptCategory,
+            isApplied: categoryAccepted,
           ),
           const SizedBox(height: 10),
 
           // Severity suggestion
           _SuggestionRow(
             icon: Icons.warning_amber_rounded,
-            label: 'Severidad sugerida',
+            label: 'Severidad',
             value: classification.suggestedSeverity,
             valueColor: _severityColor(classification.suggestedSeverity),
             onAccept: onAcceptSeverity,
+            isApplied: severityAccepted,
           ),
           const SizedBox(height: 14),
 
@@ -127,6 +134,8 @@ class _SuggestionRow extends StatelessWidget {
   final String value;
   final Color? valueColor;
   final VoidCallback? onAccept;
+  // FIX: when true shows "Editar" (value already applied) instead of "Aplicar"
+  final bool isApplied;
 
   const _SuggestionRow({
     required this.icon,
@@ -134,6 +143,7 @@ class _SuggestionRow extends StatelessWidget {
     required this.value,
     this.valueColor,
     this.onAccept,
+    this.isApplied = false,
   });
 
   @override
@@ -161,14 +171,20 @@ class _SuggestionRow extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                // FIX: "Editar" uses outline style; "Aplicar" uses filled style
+                color: isApplied ? Colors.transparent : AppColors.primary,
                 borderRadius: BorderRadius.circular(20),
+                border: isApplied
+                    ? Border.all(color: AppColors.primary.withAlpha(120))
+                    : null,
               ),
-              child: const Text('Aplicar',
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600)),
+              child: Text(
+                isApplied ? 'Editar' : 'Aplicar',
+                style: TextStyle(
+                    fontSize: 11,
+                    color: isApplied ? AppColors.primary : Colors.white,
+                    fontWeight: FontWeight.w600),
+              ),
             ),
           ),
       ],

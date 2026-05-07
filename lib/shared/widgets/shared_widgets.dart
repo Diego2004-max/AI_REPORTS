@@ -129,35 +129,27 @@ class _BrandPainter extends CustomPainter {
 }
 
 // ── REPORT STATUS ENUM ────────────────────────────────────────────────────────
-enum ReportStatus { enviado, enRevision, atendido, rechazado }
+enum ReportStatus { active, atendido }
 
 extension ReportStatusExt on ReportStatus {
   String get label {
     switch (this) {
-      case ReportStatus.enviado:    return 'Enviado';
-      case ReportStatus.enRevision: return 'En revisión';
-      case ReportStatus.atendido:   return 'Atendido';
-      case ReportStatus.rechazado:  return 'Rechazado';
+      case ReportStatus.atendido: return 'Atendido';
+      case ReportStatus.active:   return 'Activo';
     }
   }
 
   Color get dotColor {
     switch (this) {
-      case ReportStatus.enviado:    return AppColors.accent;
-      case ReportStatus.enRevision: return AppColors.warning;
-      case ReportStatus.atendido:   return AppColors.success;
-      case ReportStatus.rechazado:  return AppColors.error;
+      case ReportStatus.atendido: return AppColors.success;
+      case ReportStatus.active:   return AppColors.accent;
     }
   }
 
   static ReportStatus fromString(String s) {
     final lower = s.toLowerCase();
     if (lower.contains('atendido') || lower.contains('verific')) return ReportStatus.atendido;
-    if (lower.contains('rechaz') || lower.contains('error'))    return ReportStatus.rechazado;
-    if (lower.contains('revisión') || lower.contains('revision') || lower.contains('pendiente')) {
-      return ReportStatus.enRevision;
-    }
-    return ReportStatus.enviado;
+    return ReportStatus.active;
   }
 }
 
@@ -201,12 +193,15 @@ class StatPill extends StatelessWidget {
   final String value;
   final String label;
   final Color dotColor;
+  // FIX: onTap enables navigation from stat pills to a filtered report list
+  final VoidCallback? onTap;
 
   const StatPill({
     super.key,
     required this.value,
     required this.label,
     this.dotColor = AppColors.accent,
+    this.onTap,
   });
 
   @override
@@ -219,6 +214,7 @@ class StatPill extends StatelessWidget {
       child: AppCard(
         radius: 28,
         padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
+        onTap: onTap,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -587,6 +583,10 @@ class AppFilterChip extends StatelessWidget {
 }
 
 // ── PRIMARY BUTTON ────────────────────────────────────────────────────────────
+// FIX (Fix 8): PrimaryButton in shared_widgets — ghost/outlined variant for secondary or destructive actions.
+// Use ghost: true for secondary/destructive actions (e.g., "Cancelar", "Eliminar").
+// Use ghost: false for neumorphic-styled primary actions within the AppBackground design context.
+// Prefer VialButton (vial_button.dart) for standard form CTAs outside this design context.
 class PrimaryButton extends StatefulWidget {
   final String label;
   final VoidCallback? onPressed;
