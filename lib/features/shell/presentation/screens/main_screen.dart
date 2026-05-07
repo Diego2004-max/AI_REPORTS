@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:reportes_ai/features/home/presentation/screens/home_screen.dart';
 import 'package:reportes_ai/features/map/presentation/screens/map_screen.dart';
@@ -46,13 +47,38 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      body: _buildCurrentScreen(),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: _currentIndex,
-        onTap: _onTabSelected,
-        onCreate: _onCreateReportTap,
+    // FIX: intercept Android system back-press to show exit confirmation dialog
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await showDialog<bool>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Salir de la app'),
+            content: const Text('¿Deseas cerrar la aplicación?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Salir'),
+              ),
+            ],
+          ),
+        );
+        if (shouldPop == true && context.mounted) SystemNavigator.pop();
+      },
+      child: Scaffold(
+        extendBody: true,
+        body: _buildCurrentScreen(),
+        bottomNavigationBar: AppBottomNav(
+          currentIndex: _currentIndex,
+          onTap: _onTabSelected,
+          onCreate: _onCreateReportTap,
+        ),
       ),
     );
   }
