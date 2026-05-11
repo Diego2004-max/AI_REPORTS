@@ -1,9 +1,9 @@
-import 'dart:typed_data';
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:image_picker/image_picker.dart';
+
 
 import 'package:reportes_ai/app/theme/app_colors.dart';
 import 'package:reportes_ai/core/services/ai_service.dart';
@@ -16,6 +16,10 @@ import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
 import 'package:reportes_ai/shared/widgets/vial_card.dart';
 import 'package:reportes_ai/shared/widgets/vial_button.dart';
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 
 class CreateAudioReportScreen extends ConsumerStatefulWidget {
   const CreateAudioReportScreen({super.key});
@@ -37,24 +41,24 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
   final VoiceService _voiceService = VoiceService();
   final SpeechService _speechService = SpeechService();
   final AiService _aiService = AiService();
-  final ImagePicker _imagePicker = ImagePicker();
+
 
   bool _isLoading = false;
   bool _isGettingLocation = false;
-  bool _isPickingImage = false;
+
   bool _isRecording = false;
   bool _isAnalyzing = false;
   String _transcription = '';
   AiClassification? _aiResult;
 
   String _selectedCategory = 'Accidente';
-  String _selectedSeverity = 'Moderado';
+  final String _selectedSeverity = 'Moderado';
 
   Position? _currentPosition;
   String? _locationLabel;
 
   String? _imagePath;
-  Uint8List? _imageBytes;
+
   
   String? _audioPath;
 

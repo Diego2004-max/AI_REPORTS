@@ -17,6 +17,10 @@ import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
 import 'package:reportes_ai/shared/widgets/vial_card.dart';
 import 'package:reportes_ai/shared/widgets/vial_button.dart';
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 
 class CreateWrittenReportScreen extends ConsumerStatefulWidget {
   const CreateWrittenReportScreen({super.key});

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**reportes_ai** — Flutter citizen-reporting app powered by AI. Users capture urban incidents (accidents, road damage, infrastructure failures) with GPS, images, and audio. Reports are visualized on an interactive map and classified/prioritized via Gemini 2.0 Flash through Supabase Edge Functions.
+**reportes_ai** — Flutter citizen-reporting app powered by AI. Users capture urban incidents (accidents, road damage, infrastructure failures) with GPS, images, and audio. Reports are visualized on an interactive map and classified/prioritized via **Groq llama-3.1-8b-instant** through Supabase Edge Functions.
 
 Stack: Flutter · Supabase (Auth, DB, Edge Functions) · Riverpod · Go Router · Hive · Google Maps
 
@@ -37,7 +37,8 @@ No key files are committed. Each developer sets up these locally:
 **Google Maps — Web:** Copy `web/maps_api.example.js` → `web/maps_api.js` and set `window.GOOGLE_MAPS_API_KEY`.  
 **Google Maps — Android:** Add `MAPS_API_KEY=<key>` to `android/local.properties`.  
 **Google Maps — iOS:** Set key in `ios/Runner/AppDelegate.swift` via `GMSServices.provideAPIKey(...)`.  
-**Supabase:** Pass as `--dart-define=SUPABASE_PUBLISHABLE_KEY=<key>`. The project URL is hardcoded in `lib/main.dart`.
+**Supabase:** Pass as `--dart-define=SUPABASE_PUBLISHABLE_KEY=<key>`. The project URL is hardcoded in `lib/main.dart`.  
+**Edge Function:** Requires `GROQ_API_KEY`, `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY` set in Supabase project secrets.
 
 Required Google Cloud APIs: Maps JavaScript API, Maps SDK for Android/iOS, Geocoding API.
 
@@ -51,12 +52,29 @@ lib/
 ├── core/          # Cross-cutting services: LocationService, VoiceService, SpeechService, AiService
 ├── data/          # Models, repository implementations, Supabase datasources, Hive local storage
 ├── domain/        # Abstract repository interfaces
-├── features/      # Screens per feature: auth, home, map, reports, profile, analytics, settings
+├── features/      # Screens per feature: auth, home, map, reports, profile, analytics,
+│                  #   notifications, settings, shell
 ├── shared/        # Reusable widgets — "Vial" design system (VialButton, VialCard, VialTextField)
 └── state/         # All Riverpod providers
 ```
 
 Data flow: `features/` → `state/` providers → `data/repositories/` → `data/remote/supabase/` or `data/local/hive/`.
+
+## Navigation Architecture
+
+The app uses **two navigation layers**:
+
+1. **Go Router** (`app/router/app_router.dart`) — handles auth routing only. Watches `sessionProvider`: redirects to `/login` when unauthenticated, to `/app` when authenticated. The `/app` route renders `MainScreen`.
+
+2. **Navigator.push / MaterialPageRoute** — all in-app navigation (report detail, analytics screens, notifications, settings). These screens are pushed on top of `MainScreen` and popped back to it.
+
+**`MainScreen`** (`features/shell/presentation/screens/main_screen.dart`) is a `StatefulWidget` that owns tab state (`_currentIndex`). It swaps between four screens via `_buildCurrentScreen()`:
+- Tab 0: `HomeScreen`
+- Tab 1: `MapScreen`
+- Tab 2: `ReportListScreen`
+- Tab 3: `ProfileScreen`
+
+The FAB in `AppBottomNav` calls `_onCreateReportTap()`, which pushes `CreateReportScreen` (a selector that leads to `CreateWrittenReportScreen` or `CreateAudioReportScreen`). After successful report creation, pop back to `MainScreen` — the tab state is preserved.
 
 ## Design System
 
@@ -74,7 +92,7 @@ The app uses a custom design system called **Vial** (`shared/widgets/`, `app/the
 
 **Shadows:** Neumorphic dual-color shadows (light + dark pair) defined in `app/theme/app_shadows.dart`. Use `AppShadows.card`, `.soft`, `.float`, `.accentGlow`.
 
-**Spacing:** Always use `AppSpacing` constants (`xs=4`, `sm=8`, `md=12`, `lg=16`, `xl=24`, `xxl=32`). Never use magic numbers for padding/margin.
+**Spacing:** Always use `AppSpacing` constants (`xs=4`, `sm=8`, `md=12`, `lg=16`, `xl=24`, `xxl=32`). Also available: `AppSpacing.screenH` (horizontal screen padding), `AppSpacing.radiusMd` (standard card radius). Never use magic numbers for padding/margin.
 
 **Dark/Light Mode:** Managed by `themeProvider` (NotifierProvider, persisted in Hive). Both themes must be fully implemented — no screen should rely on hardcoded colors. Always use `Theme.of(context)` or `AppColors` semantic tokens, never literal hex values in widgets.
 
@@ -88,23 +106,24 @@ The app uses a custom design system called **Vial** (`shared/widgets/`, `app/the
 | `allReportsProvider` | `FutureProvider` | All reports for map display |
 | `userReportsProvider` | `FutureProvider` | Reports for the logged-in user |
 | `recentUserReportsProvider` | `FutureProvider.family(int)` | Top N recent reports for user |
-| `userReportStatsProvider` | `FutureProvider` | Per-status counts for dashboard |
+| `userReportStatsProvider` | `FutureProvider` | Per-status counts (`total`, `attended`, `reviewing`) |
 | `reportRefreshProvider` | `NotifierProvider` | Increment to trigger report re-fetch |
 | `themeProvider` | `NotifierProvider` | Theme mode (light/dark/system), persisted in Hive |
+
+All providers are defined in `state/`. Use `refreshReports(ref)` (exported from `state/report_provider.dart`) to invalidate all report providers and trigger a re-fetch — call it after any create/update/delete operation.
 
 ## Auth & Session
 
 - `state/session_provider.dart` (`SessionNotifier`) persists `isLoggedIn`, `userId`, `userEmail`, `userName` in Hive. Session is restored on app restart.
-- Go Router (`app/router/app_router.dart`) watches `sessionProvider`: redirects to `/login` when unauthenticated, to `/app` when authenticated.
 - Registration creates a row in the `profiles` table; login fetches from it.
 
 ## Reports
 
-**Two creation flows:**
-1. **Written** (`CreateWrittenReportScreen`) — GPS auto-captured on open, category selector, severity toggle, description, optional image, AI analysis button.
-2. **Audio** (`CreateAudioReportScreen`) — records via `VoiceService` (wraps `record` package), optional transcription via `SpeechService`.
+**Creation flow:** `CreateReportScreen` is a selector screen that presents the choice between written and audio reports. It is reached via the FAB.
+1. **Written** (`CreateWrittenReportScreen`) — GPS auto-captured on open, category selector, severity toggle, description, optional image (JPEG, quality 75, max width 1600px), AI analysis button.
+2. **Audio** (`CreateAudioReportScreen`) — records via `VoiceService` (wraps `record` package), optional transcription via `SpeechService`, auto-analyzes on stop.
 
-**Report status literals:** `'Enviado'` · `'En revisión'` · `'Atendido'` — match exactly in all code.
+**Report status:** Stored as strings in Supabase. The `UserReportStatus` enum (defined in `data/repositories/report_repository_impl.dart`) maps to: `attended` → `'Atendido'`, `reviewing` → `'En revisión'`, `sent` → `'Enviado'`. When displaying status in UI widgets, use `ReportStatusExt.fromString(report.status)` (defined in `shared/widgets/shared_widgets.dart`) which performs fuzzy matching.
 
 **ReportModel invariants:**
 - `latitude`/`longitude` are nullable; map markers are only created when both are non-null.
@@ -115,12 +134,12 @@ The app uses a custom design system called **Vial** (`shared/widgets/`, `app/the
 
 The AI pipeline is **optional and non-blocking** — if any step fails, the report is saved without AI fields. Never make AI a hard dependency for report submission.
 
-**Edge Function** (`supabase/functions/ai-report-processor/index.ts`) runs on Deno/TypeScript and uses Gemini 2.0 Flash. Three actions:
-- `classify` — assigns category, severity, confidence, `sensitive_location`, `road_impact`
-- `credibility` — scores 0.0–1.0 based on user frequency, geographic corroboration, description length
-- `priority` — weighted score: severity 35%, confirmations 20%, sensitive location 15%, road impact 15%, credibility 15%
+**Edge Function** (`supabase/functions/ai-report-processor/index.ts`) runs on Deno/TypeScript and calls the **Groq API** (model: `llama-3.1-8b-instant`). Three actions:
+- `classify` — assigns `category`, `severity`, `confidence`, `sensitive_location`, `road_impact`. AI categories differ from UI form categories: `"Accidente de tránsito"` · `"Infraestructura"` · `"Seguridad"` · `"Emergencia climática"` · `"Servicios públicos"`.
+- `credibility` — scores 0.0–1.0 based on user submission frequency in last 5 min, geographic corroboration within ~200m in last 2 hrs, and description length.
+- `priority` — weighted score: severity 35%, confirmations 20%, sensitive location 15%, road impact 15%, credibility 15%.
 
-`AiService` in `core/services/ai_service.dart` invokes the function via `supabase.functions.invoke(...)`.
+`AiService` in `core/services/ai_service.dart` invokes the function via `supabase.functions.invoke(...)`. Fallback values when AI is skipped: `credibilityScore=1.0`, `priorityScore=0.5`.
 
 ## Map
 

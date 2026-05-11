@@ -17,7 +17,6 @@ class HotspotsScreen extends ConsumerStatefulWidget {
 
 class _HotspotsScreenState extends ConsumerState<HotspotsScreen> {
   GoogleMapController? _mapController;
-  HotspotZone? _selectedZone;
 
   static const _initialPosition = CameraPosition(
     target: LatLng(1.2136, -77.2811),
@@ -53,12 +52,11 @@ class _HotspotsScreenState extends ConsumerState<HotspotsScreen> {
   }
 
   void _showZoneSheet(HotspotZone zone) {
-    setState(() => _selectedZone = zone);
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => _ZoneBottomSheet(zone: zone),
-    ).then((_) => setState(() => _selectedZone = null));
+    );
   }
 
   @override

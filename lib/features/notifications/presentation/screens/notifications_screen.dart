@@ -111,7 +111,7 @@ class _RiskSummaryCard extends StatelessWidget {
     final analyticsAsync = analyticsRef.watch(globalAnalyticsProvider);
     return analyticsAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
       data: (analytics) {
         final topCategory = analytics.mostActiveCategory;
         final total = analytics.totalReports;
@@ -197,7 +197,7 @@ class _CategoryPredictions extends StatelessWidget {
     final analyticsAsync = analyticsRef.watch(globalAnalyticsProvider);
     return analyticsAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
       data: (analytics) {
         final cats = analytics.byCategory.take(3).toList();
         if (cats.isEmpty) return const SizedBox.shrink();

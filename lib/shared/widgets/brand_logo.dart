@@ -34,7 +34,7 @@ class _BarChartPainter extends CustomPainter {
     final h = size.height / 34;
     final paint = Paint()..style = PaintingStyle.fill;
 
-    paint.color = Colors.white.withOpacity(0.7);
+    paint.color = Colors.white.withValues(alpha: 0.7);
     canvas.drawRRect(
       RRect.fromLTRBR(2 * w, 18 * h, 9 * w, 32 * h, const Radius.circular(2)),
       paint,
@@ -46,7 +46,7 @@ class _BarChartPainter extends CustomPainter {
       paint,
     );
 
-    paint.color = Colors.white.withOpacity(0.7);
+    paint.color = Colors.white.withValues(alpha: 0.7);
     canvas.drawRRect(
       RRect.fromLTRBR(25 * w, 2 * h, 32 * w, 32 * h, const Radius.circular(2)),
       paint,

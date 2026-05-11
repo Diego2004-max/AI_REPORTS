@@ -58,7 +58,7 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 28),
               statsAsync.when(
                 loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
                 data: (stats) => AppCard(
                   radius: 24,
                   padding: const EdgeInsets.symmetric(vertical: 20),
