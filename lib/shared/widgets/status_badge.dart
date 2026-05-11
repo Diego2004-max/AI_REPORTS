@@ -11,14 +11,16 @@ class StatusBadge extends StatelessWidget {
   final String status;
   final bool showIcon;
 
-  IconData _icon() {
+  bool get _isAttended {
     final s = status.toLowerCase();
-    if (s.contains('enviado')) return Icons.send_rounded;
-    if (s.contains('revisión') || s.contains('pendiente')) return Icons.search_rounded;
-    if (s.contains('atendido') || s.contains('verificado')) return Icons.check_circle_rounded;
-    if (s.contains('rechazado') || s.contains('error')) return Icons.cancel_rounded;
-    return Icons.circle_rounded;
+    return s.contains('atendido') || s.contains('verific');
   }
+
+  IconData _icon() {
+    return _isAttended ? Icons.check_circle_rounded : Icons.circle_rounded;
+  }
+
+  String get _displayLabel => _isAttended ? 'ATENDIDO' : 'ACTIVO';
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +38,7 @@ class StatusBadge extends StatelessWidget {
             const SizedBox(width: 4),
           ],
           Text(
-            status.toUpperCase(),
+            _displayLabel,
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,

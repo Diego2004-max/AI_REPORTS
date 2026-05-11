@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:reportes_ai/app/router/app_router.dart';
 import 'package:reportes_ai/app/theme/app_colors.dart';
 import 'package:reportes_ai/features/analytics/presentation/screens/hotspots_screen.dart';
 import 'package:reportes_ai/features/analytics/presentation/screens/statistics_screen.dart';
-import 'package:reportes_ai/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:reportes_ai/features/reports/presentation/screens/report_detail_screen.dart';
+import 'package:reportes_ai/features/reports/presentation/screens/report_list_screen.dart';
 import 'package:reportes_ai/shared/widgets/shared_widgets.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
@@ -86,14 +88,19 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                      ),
-                      child: UserAvatar(
-                        initials: firstName.isNotEmpty ? firstName[0].toUpperCase() : 'U',
-                        size: 38,
+                    // FIX: Tooltip + Semantics for accessibility; context.push for named route (Fix 9+10)
+                    Tooltip(
+                      message: 'Ver notificaciones',
+                      child: Semantics(
+                        label: 'Botón de notificaciones',
+                        button: true,
+                        child: GestureDetector(
+                          onTap: () => context.push(AppRoutes.notifications),
+                          child: UserAvatar(
+                            initials: firstName.isNotEmpty ? firstName[0].toUpperCase() : 'U',
+                            size: 38,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -109,26 +116,93 @@ class HomeScreen extends ConsumerWidget {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
                     child: statsAsync.when(
-                      loading: () => const SizedBox.shrink(),
-                      error: (e, _) => Text(
-                        e.toString(),
-                        style: TextStyle(color: errorColor, fontSize: 13),
+                      // FIX: show placeholder containers matching StatPill layout during load
+                      loading: () {
+                        final placeholderColor = isDark ? AppColors.darkSurface : AppColors.bg2;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      color: placeholderColor,
+                                      borderRadius: BorderRadius.circular(28),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Container(
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      color: placeholderColor,
+                                      borderRadius: BorderRadius.circular(28),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            Container(
+                              height: 30,
+                              decoration: BoxDecoration(
+                                color: placeholderColor,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      // FIX: mensaje amigable con botón de reintento en lugar de excepción cruda
+                      error: (e, _) => Column(
+                        children: [
+                          Text(
+                            'No se pudieron cargar tus estadísticas. Intenta de nuevo.',
+                            style: TextStyle(color: errorColor, fontSize: 13),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
+                            onPressed: () => ref.invalidate(userReportStatsProvider),
+                            icon: const Icon(Icons.refresh_rounded, size: 16),
+                            label: const Text('Reintentar'),
+                          ),
+                        ],
                       ),
                       data: (stats) => Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
+                              // FIX: onTap en "Total" navega a todos los reportes
                               StatPill(
                                 value: '${stats.total}',
                                 label: 'Total',
                                 dotColor: AppColors.accent,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const ReportListScreen(),
+                                  ),
+                                ),
                               ),
                               const SizedBox(width: 12),
+                              // FIX: onTap en "Atendidos" navega con filtro status == atendido
                               StatPill(
                                 value: '${stats.attended}',
                                 label: 'Atendidos',
                                 dotColor: AppColors.success,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const ReportListScreen(
+                                      initialFilter: 'Atendidos',
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -137,7 +211,11 @@ class HomeScreen extends ConsumerWidget {
                           const SizedBox(height: 28),
                           const SectionHeader(title: 'Recientes'),
                           recentAsync.when(
-                            loading: () => const SizedBox.shrink(),
+                            // FIX: show centered indicator while recent reports load
+                            loading: () => const SizedBox(
+                              height: 120,
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
                             error: (e, _) => Text(
                               e.toString(),
                               style: TextStyle(color: errorColor, fontSize: 13),
@@ -254,12 +332,16 @@ class _AnalyticsShortcut extends StatelessWidget {
             child: Icon(icon, size: 16, color: color),
           ),
           const SizedBox(width: 10),
-          Text(
-            label,
-            style: GoogleFonts.dmSans(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: textColor,
+          Flexible(
+            child: Text(
+              label,
+              style: GoogleFonts.dmSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: textColor,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
             ),
           ),
         ],

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../app/theme/app_colors.dart';
 
+// FIX (Fix 8): VialButton — primary action button for the Vial design system.
+// Use for: form submissions, main CTAs (e.g., "Enviar reporte").
+// Has two variants: filled primary (default) and outlined secondary (isSecondary: true).
+// Prefer this over PrimaryButton (primary_button.dart) for standard in-app actions.
 class VialButton extends StatelessWidget {
-  final VoidCallback onPressed;
+  // FIX: nullable onPressed so callers can disable the button by passing null
+  final VoidCallback? onPressed;
   final String text;
   final bool isSecondary;
   final Widget? icon;

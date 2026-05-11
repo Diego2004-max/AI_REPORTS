@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reportes_ai/app/router/app_router.dart';
 import 'package:reportes_ai/app/theme/app_colors.dart';
-import 'package:reportes_ai/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:reportes_ai/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:reportes_ai/features/settings/presentation/screens/settings_screen.dart';
 import 'package:reportes_ai/features/settings/presentation/screens/theme_screen.dart';
@@ -89,10 +88,8 @@ class ProfileScreen extends ConsumerWidget {
                     MenuItem(
                       icon: Icons.notifications_none_rounded,
                       label: 'Notificaciones',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                      ),
+                      // FIX: use named Go Router route instead of raw MaterialPageRoute
+                      onTap: () => context.push(AppRoutes.notifications),
                     ),
                     MenuItem(
                       icon: Icons.palette_outlined,
@@ -116,9 +113,29 @@ class ProfileScreen extends ConsumerWidget {
                       iconColor: AppColors.error,
                       labelColor: AppColors.error,
                       showDivider: false,
+                      // FIX: show confirmation dialog before executing destructive logout action
                       onTap: () async {
-                        await ref.read(sessionProvider.notifier).clearSession();
-                        if (context.mounted) context.go(AppRoutes.login);
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Cerrar sesión'),
+                            content: const Text('¿Estás seguro de que deseas cerrar sesión?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                                child: const Text('Cancelar'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(true),
+                                child: const Text('Cerrar sesión'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) {
+                          await ref.read(sessionProvider.notifier).clearSession();
+                          if (context.mounted) context.go(AppRoutes.login);
+                        }
                       },
                     ),
                   ],

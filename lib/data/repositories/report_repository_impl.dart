@@ -11,11 +11,36 @@ abstract final class UserReportStatus {
 class ReportRepositoryImpl {
   final SupabaseClient _client = Supabase.instance.client;
 
+  static Duration _expiryForSeverity(String severity) {
+    switch (severity.toLowerCase()) {
+      case 'grave':
+      case 'crítico':
+      case 'critico':
+        return const Duration(hours: 2);
+      case 'leve':
+        return const Duration(minutes: 30);
+      default:
+        return const Duration(hours: 1);
+    }
+  }
+
+  Future<void> _autoResolveExpiredReports() async {
+    try {
+      final now = DateTime.now().toUtc().toIso8601String();
+      await _client
+          .from('reports')
+          .update({'status': UserReportStatus.attended})
+          .lt('expires_at', now)
+          .neq('status', UserReportStatus.attended);
+    } catch (_) {}
+  }
+
   Future<ReportModel> createReport({
     required String userId,
     required String title,
     required String description,
     required String category,
+    String severity = 'Moderado',
     String status = UserReportStatus.submitted,
     String? locationLabel,
     double? latitude,
@@ -33,7 +58,7 @@ class ReportRepositoryImpl {
           ? _buildFallbackTitle(cleanDescription)
           : title.trim();
 
-      final expiresAt = DateTime.now().add(const Duration(days: 10));
+      final expiresAt = DateTime.now().add(_expiryForSeverity(severity));
 
       final inserted = await _client
           .from('reports')
@@ -66,6 +91,7 @@ class ReportRepositoryImpl {
   }
 
   Future<List<ReportModel>> getReportsByUserId(String userId) async {
+    await _autoResolveExpiredReports();
     try {
       final rows = await _client
           .from('reports')
@@ -84,6 +110,7 @@ class ReportRepositoryImpl {
   }
 
   Future<List<ReportModel>> getAllReports() async {
+    await _autoResolveExpiredReports();
     try {
       final rows = await _client
           .from('reports')

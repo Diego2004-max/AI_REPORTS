@@ -63,8 +63,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             FilledButton(
               onPressed: () async {
                 final email = emailCtrl.text.trim();
+                final emailReg = RegExp(r'^[\w\-\.]+@([\w\-]+\.)+[\w]{2,4}$');
+                if (email.isEmpty || !emailReg.hasMatch(email)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Ingresa un correo válido')),
+                  );
+                  return;
+                }
                 Navigator.pop(dialogContext);
-                if (email.isEmpty) return;
                 try {
                   await Supabase.instance.client.auth.resetPasswordForEmail(email);
                   if (!mounted) return;

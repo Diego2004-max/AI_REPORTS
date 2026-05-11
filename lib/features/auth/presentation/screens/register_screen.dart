@@ -122,6 +122,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           if (value == null || value.trim().isEmpty) {
                             return 'Ingresa tu nombre';
                           }
+                          if (value.trim().length < 2) {
+                            return 'El nombre debe tener al menos 2 caracteres';
+                          }
                           return null;
                         },
                       ),
@@ -168,6 +171,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         controller: _confirmCtrl,
                         obscureText: true,
                         validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Confirma tu contraseña';
+                          }
                           if (value != _passwordCtrl.text) {
                             return 'Las contraseñas no coinciden';
                           }
