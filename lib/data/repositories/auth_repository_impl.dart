@@ -98,6 +98,13 @@ class AuthRepositoryImpl {
     );
   }
 
+  Future<void> signInWithGoogle() async {
+    await _client.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: 'com.example.reportesai://login-callback',
+    );
+  }
+
   Future<UserModel> updateUserName({
     required String userId,
     required String newName,

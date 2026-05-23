@@ -129,7 +129,7 @@ class _ReportListScreenState extends ConsumerState<ReportListScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 22),
                   scrollDirection: Axis.horizontal,
                   itemCount: _filters.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (_, i) => AppFilterChip(
                     label: _filters[i],
                     selected: _selectedFilter == _filters[i],

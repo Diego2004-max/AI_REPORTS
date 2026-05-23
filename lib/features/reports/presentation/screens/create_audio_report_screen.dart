@@ -1,9 +1,9 @@
-import 'dart:typed_data';
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:image_picker/image_picker.dart';
+
 
 import 'package:reportes_ai/app/theme/app_colors.dart';
 import 'package:reportes_ai/core/services/ai_service.dart';
@@ -15,6 +15,7 @@ import 'package:reportes_ai/shared/widgets/ai_classification_card.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
 import 'package:reportes_ai/shared/widgets/vial_card.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:reportes_ai/shared/widgets/vial_button.dart';
 
 class CreateAudioReportScreen extends ConsumerStatefulWidget {
@@ -37,11 +38,11 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
   final VoiceService _voiceService = VoiceService();
   final SpeechService _speechService = SpeechService();
   final AiService _aiService = AiService();
-  final ImagePicker _imagePicker = ImagePicker();
+
 
   bool _isLoading = false;
   bool _isGettingLocation = false;
-  bool _isPickingImage = false;
+
   bool _isRecording = false;
   bool _isAnalyzing = false;
   String _transcription = '';
@@ -54,7 +55,7 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
   String? _locationLabel;
 
   String? _imagePath;
-  Uint8List? _imageBytes;
+
   
   String? _audioPath;
 
@@ -113,6 +114,14 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
   }
 
   Future<void> _startRecording() async {
+    final status = await Permission.microphone.request();
+    if (!status.isGranted) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Se necesita permiso de micrófono para grabar')),
+      );
+      return;
+    }
     try {
       await _voiceService.startRecording();
       _pulseController.repeat(reverse: true);

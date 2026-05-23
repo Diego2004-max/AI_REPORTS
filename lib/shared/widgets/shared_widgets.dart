@@ -110,13 +110,13 @@ class _BrandPainter extends CustomPainter {
     final h = size.height / 34;
     final paint = Paint()..style = PaintingStyle.fill;
 
-    paint.color = Colors.white.withOpacity(0.7);
+    paint.color = Colors.white.withValues(alpha: 0.7);
     canvas.drawRRect(RRect.fromLTRBR(2 * w, 18 * h, 9 * w, 32 * h, const Radius.circular(2)), paint);
 
     paint.color = Colors.white;
     canvas.drawRRect(RRect.fromLTRBR(13.5 * w, 10 * h, 20.5 * w, 32 * h, const Radius.circular(2)), paint);
 
-    paint.color = Colors.white.withOpacity(0.7);
+    paint.color = Colors.white.withValues(alpha: 0.7);
     canvas.drawRRect(RRect.fromLTRBR(25 * w, 2 * h, 32 * w, 32 * h, const Radius.circular(2)), paint);
 
     // Accent dot — single color highlight
@@ -163,7 +163,7 @@ class StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: status.dotColor.withOpacity(0.08),
+        color: status.dotColor.withValues(alpha: 0.08),
         borderRadius: AppRadius.borderFull,
       ),
       child: Row(
