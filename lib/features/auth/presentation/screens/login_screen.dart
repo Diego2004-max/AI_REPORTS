@@ -23,12 +23,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _onGoogleSignIn() async {
+    setState(() => _isGoogleLoading = true);
+    try {
+      await ref.read(authRepositoryProvider).signInWithGoogle();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    } finally {
+      if (mounted) setState(() => _isGoogleLoading = false);
+    }
   }
 
   Future<void> _showForgotPassword() async {
@@ -231,11 +246,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   PrimaryButton(
                     ghost: true,
                     label: 'Continuar con Google',
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Google Sign-In próximamente.')),
-                      );
-                    },
+                    onPressed: _onGoogleSignIn,
+                    loading: _isGoogleLoading,
                   ),
                   const SizedBox(height: AppSpacing.xxl),
                   Row(

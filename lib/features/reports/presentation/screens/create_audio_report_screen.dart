@@ -15,11 +15,8 @@ import 'package:reportes_ai/shared/widgets/ai_classification_card.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
 import 'package:reportes_ai/shared/widgets/vial_card.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:reportes_ai/shared/widgets/vial_button.dart';
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 
 class CreateAudioReportScreen extends ConsumerStatefulWidget {
   const CreateAudioReportScreen({super.key});
@@ -52,7 +49,7 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
   AiClassification? _aiResult;
 
   String _selectedCategory = 'Accidente';
-  final String _selectedSeverity = 'Moderado';
+  String _selectedSeverity = 'Moderado';
 
   Position? _currentPosition;
   String? _locationLabel;
@@ -117,6 +114,14 @@ class _CreateAudioReportScreenState extends ConsumerState<CreateAudioReportScree
   }
 
   Future<void> _startRecording() async {
+    final status = await Permission.microphone.request();
+    if (!status.isGranted) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Se necesita permiso de micrófono para grabar')),
+      );
+      return;
+    }
     try {
       await _voiceService.startRecording();
       _pulseController.repeat(reverse: true);
