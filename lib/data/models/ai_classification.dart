@@ -51,19 +51,26 @@ class AiClassification {
     const severityMap = <String, String>{
       'baja': 'Leve',
       'media': 'Moderado',
+      'grave': 'Crítico',
       'alta': 'Crítico',
+      'critica': 'Crítico',
+      'crítico': 'Crítico',
       'crítica': 'Crítico',
     };
 
     final rawCat = data['category'] as String? ?? 'Accidente de tránsito';
     final rawSev = data['severity'] as String? ?? 'media';
+    final normalizedSeverity = rawSev.toLowerCase().trim();
+    final priority = (data['priority_score'] as num?)?.toDouble() ?? 0;
 
     return AiClassification(
-      suggestedCategory: categoryMap[rawCat] ?? 'Accidente',
-      suggestedSeverity: severityMap[rawSev] ?? 'Moderado',
+      suggestedCategory: categoryMap[rawCat] ?? rawCat,
+      suggestedSeverity: severityMap[normalizedSeverity] ?? 'Moderado',
       confidence: (data['confidence'] as num?)?.toDouble() ?? 0.7,
       entities: const [],
-      priorityScore: 0,
+      priorityScore: priority <= 1
+          ? (priority * 100).round()
+          : priority.round(),
       sensitiveLoc: data['sensitive_location'] as bool? ?? false,
       roadImpact: data['road_impact'] as bool? ?? false,
       rawAiCategory: rawCat,
@@ -72,12 +79,14 @@ class AiClassification {
   }
 
   AiClassification withPriorityScore(double score) {
+    final normalizedScore = score <= 1 ? score * 100 : score;
+
     return AiClassification(
       suggestedCategory: suggestedCategory,
       suggestedSeverity: suggestedSeverity,
       confidence: confidence,
       entities: entities,
-      priorityScore: (score * 100).round(),
+      priorityScore: normalizedScore.round().clamp(0, 100).toInt(),
       sensitiveLoc: sensitiveLoc,
       roadImpact: roadImpact,
       rawAiCategory: rawAiCategory,

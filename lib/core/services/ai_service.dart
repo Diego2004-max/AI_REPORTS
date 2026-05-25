@@ -14,16 +14,21 @@ class AiService {
     String? locationLabel,
     String? transcribedAudio,
   }) async {
-    final text = (transcribedAudio != null && transcribedAudio.isNotEmpty)
-        ? '$description $transcribedAudio'.trim()
-        : description;
+    final cleanDescription = description.trim();
+    final cleanTranscription = transcribedAudio?.trim();
+    final text =
+        (cleanTranscription != null &&
+            cleanTranscription.isNotEmpty &&
+            cleanTranscription != cleanDescription)
+        ? '$cleanDescription $cleanTranscription'.trim()
+        : cleanDescription;
 
     final response = await _client.functions.invoke(
       _fn,
       body: {
         'action': 'classify',
         'description': text,
-        if (locationLabel != null) 'location': locationLabel,
+        'location': ?locationLabel,
       },
     );
 

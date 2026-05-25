@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:reportes_ai/shared/widgets/report_card.dart';
 
 class StatusBadge extends StatelessWidget {
-  const StatusBadge({
-    super.key,
-    required this.status,
-    this.showIcon = false,
-  });
+  const StatusBadge({super.key, required this.status, this.showIcon = false});
 
   final String status;
   final bool showIcon;
@@ -24,29 +20,37 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(showIcon ? 8 : 10, 4, 10, 4),
-      decoration: BoxDecoration(
-        color: status.statusBackground,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (showIcon) ...[
-            Icon(_icon(), size: 12, color: status.statusColor),
-            const SizedBox(width: 4),
-          ],
-          Text(
-            _displayLabel,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: status.statusColor,
-              letterSpacing: 0.8,
-            ),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 88),
+      child: Container(
+        padding: EdgeInsets.fromLTRB(showIcon ? 7 : 9, 4, 9, 4),
+        decoration: BoxDecoration(
+          color: status.statusBackground,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (showIcon) ...[
+                Icon(_icon(), size: 12, color: status.statusColor),
+                const SizedBox(width: 4),
+              ],
+              Text(
+                _displayLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: status.statusColor,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

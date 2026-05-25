@@ -78,7 +78,8 @@ class _CreateWrittenReportScreenState
 
       setState(() {
         _currentPosition = position;
-        _locationLabel = address ??
+        _locationLabel =
+            address ??
             'Lat ${position.latitude.toStringAsFixed(5)}, Lng ${position.longitude.toStringAsFixed(5)}';
       });
     } catch (e) {
@@ -160,16 +161,28 @@ class _CreateWrittenReportScreenState
                   ),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.photo_library_outlined, color: AppColors.textPrimary),
-                  title: const Text('Seleccionar de galería', style: TextStyle(color: AppColors.textPrimary)),
+                  leading: const Icon(
+                    Icons.photo_library_outlined,
+                    color: AppColors.textPrimary,
+                  ),
+                  title: const Text(
+                    'Seleccionar de galería',
+                    style: TextStyle(color: AppColors.textPrimary),
+                  ),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     _pickImage(ImageSource.gallery);
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.photo_camera_outlined, color: AppColors.textPrimary),
-                  title: const Text('Tomar foto', style: TextStyle(color: AppColors.textPrimary)),
+                  leading: const Icon(
+                    Icons.photo_camera_outlined,
+                    color: AppColors.textPrimary,
+                  ),
+                  title: const Text(
+                    'Tomar foto',
+                    style: TextStyle(color: AppColors.textPrimary),
+                  ),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     _pickImage(ImageSource.camera);
@@ -209,9 +222,9 @@ class _CreateWrittenReportScreenState
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error IA: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error IA: $e')));
     } finally {
       if (mounted) setState(() => _isAnalyzing = false);
     }
@@ -234,15 +247,22 @@ class _CreateWrittenReportScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 40, height: 4,
+                  width: 40,
+                  height: 4,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
                     color: AppColors.surfaceVariant,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                const Text('Cambiar categoría',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                const Text(
+                  'Cambiar categoría',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 12,
@@ -255,20 +275,36 @@ class _CreateWrittenReportScreenState
                         Navigator.pop(ctx);
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.primary : AppColors.surfaceContainerLow,
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.surfaceContainerLow,
                           borderRadius: BorderRadius.circular(24),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(entry.value, size: 18,
-                                color: isSelected ? AppColors.onPrimary : AppColors.textSecondary),
+                            Icon(
+                              entry.value,
+                              size: 18,
+                              color: isSelected
+                                  ? AppColors.onPrimary
+                                  : AppColors.textSecondary,
+                            ),
                             const SizedBox(width: 8),
-                            Text(entry.key,
-                                style: TextStyle(fontSize: 14,
-                                    color: isSelected ? AppColors.onPrimary : AppColors.textSecondary)),
+                            Text(
+                              entry.key,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isSelected
+                                    ? AppColors.onPrimary
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -300,15 +336,22 @@ class _CreateWrittenReportScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 40, height: 4,
+                  width: 40,
+                  height: 4,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
                     color: AppColors.surfaceVariant,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                const Text('Cambiar severidad',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                const Text(
+                  'Cambiar severidad',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -338,18 +381,28 @@ class _CreateWrittenReportScreenState
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? color.withAlpha(30) : AppColors.surfaceContainerLow,
+            color: isSelected
+                ? color.withAlpha(30)
+                : AppColors.surfaceContainerLow,
             borderRadius: BorderRadius.circular(12),
             border: isSelected ? Border.all(color: color, width: 1.5) : null,
           ),
           child: Column(
             children: [
-              Container(width: 8, height: 8,
-                  decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
               const SizedBox(height: 6),
-              Text(severity,
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500,
-                      color: isSelected ? color : AppColors.textSecondary)),
+              Text(
+                severity,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: isSelected ? color : AppColors.textSecondary,
+                ),
+              ),
             ],
           ),
         ),
@@ -362,15 +415,17 @@ class _CreateWrittenReportScreenState
     final userId = session.userId;
 
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Debes iniciar sesión')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Debes iniciar sesión')));
       return;
     }
 
     if (_currentPosition == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Debes capturar la ubicación del reporte')),
+        const SnackBar(
+          content: Text('Debes capturar la ubicación del reporte'),
+        ),
       );
       return;
     }
@@ -382,9 +437,9 @@ class _CreateWrittenReportScreenState
         _descriptionError = true;
         _descriptionErrorText = descError;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(descError)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(descError)));
       return;
     }
 
@@ -423,7 +478,9 @@ class _CreateWrittenReportScreenState
         // AI is optional — save report without AI fields on failure
       }
 
-      await ref.read(reportRepositoryProvider).createReport(
+      await ref
+          .read(reportRepositoryProvider)
+          .createReport(
             userId: userId,
             title: generatedTitle,
             description: description,
@@ -450,6 +507,11 @@ class _CreateWrittenReportScreenState
       );
 
       Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -459,7 +521,8 @@ class _CreateWrittenReportScreenState
   Widget build(BuildContext context) {
     final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
     // FIX: submit disabled until AI analysis has classified the report
-    final canSubmit = _aiResult != null &&
+    final canSubmit =
+        _aiResult != null &&
         _selectedCategory.isNotEmpty &&
         _selectedSeverity.isNotEmpty;
 
@@ -472,7 +535,9 @@ class _CreateWrittenReportScreenState
         flexibleSpace: Container(
           decoration: BoxDecoration(
             color: AppColors.surfaceContainerLowest.withAlpha(200),
-            border: Border(bottom: BorderSide(color: AppColors.surfaceContainerHighest)),
+            border: Border(
+              bottom: BorderSide(color: AppColors.surfaceContainerHighest),
+            ),
           ),
         ),
         leading: IconButton(
@@ -505,35 +570,52 @@ class _CreateWrittenReportScreenState
                     Row(
                       children: [
                         const Expanded(
-                          child: Text('Descripción *',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                          child: Text(
+                            'Descripción *',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                         if (_isAnalyzing)
                           const SizedBox(
-                            width: 18, height: 18,
+                            width: 18,
+                            height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         else
                           GestureDetector(
                             onTap: _analyzeWithAi,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withAlpha(15),
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: AppColors.primary.withAlpha(60)),
+                                border: Border.all(
+                                  color: AppColors.primary.withAlpha(60),
+                                ),
                               ),
                               child: const Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.auto_awesome_rounded,
-                                      size: 13, color: AppColors.primary),
+                                  Icon(
+                                    Icons.auto_awesome_rounded,
+                                    size: 13,
+                                    color: AppColors.primary,
+                                  ),
                                   SizedBox(width: 4),
-                                  Text('Analizar con IA',
-                                      style: TextStyle(
-                                          fontSize: 11,
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.w600)),
+                                  Text(
+                                    'Analizar con IA',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -569,12 +651,19 @@ class _CreateWrittenReportScreenState
                           }
                         },
                         decoration: const InputDecoration(
-                          hintText: 'Describe el incidente con detalle para que la IA lo clasifique correctamente...',
-                          hintStyle: TextStyle(color: AppColors.outline, fontSize: 14),
+                          hintText:
+                              'Describe el incidente con detalle para que la IA lo clasifique correctamente...',
+                          hintStyle: TextStyle(
+                            color: AppColors.outline,
+                            fontSize: 14,
+                          ),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.all(16),
                         ),
-                        style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
                     if (_descriptionError && _descriptionErrorText != null)
@@ -583,7 +672,10 @@ class _CreateWrittenReportScreenState
                         child: Text(
                           _descriptionErrorText!,
                           style: const TextStyle(
-                              color: AppColors.error, fontSize: 12, fontWeight: FontWeight.w500),
+                            color: AppColors.error,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     if (_aiResult == null && !_isAnalyzing)
@@ -592,9 +684,10 @@ class _CreateWrittenReportScreenState
                         child: Text(
                           'Toca "Analizar con IA" para que el sistema clasifique el reporte.',
                           style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary.withAlpha(180),
-                              fontStyle: FontStyle.italic),
+                            fontSize: 12,
+                            color: AppColors.textSecondary.withAlpha(180),
+                            fontStyle: FontStyle.italic,
+                          ),
                         ),
                       ),
                   ],
@@ -633,48 +726,57 @@ class _CreateWrittenReportScreenState
                         child: _isGettingLocation
                             ? const Center(child: CircularProgressIndicator())
                             : _currentPosition != null
-                                ? AbsorbPointer(
-                                    child: GoogleMap(
-                                      initialCameraPosition: CameraPosition(
-                                        target: LatLng(
-                                          _currentPosition!.latitude,
-                                          _currentPosition!.longitude,
-                                        ),
-                                        zoom: 15,
-                                      ),
-                                      markers: {
-                                        Marker(
-                                          markerId: const MarkerId('report_location'),
-                                          position: LatLng(
-                                            _currentPosition!.latitude,
-                                            _currentPosition!.longitude,
-                                          ),
-                                        ),
-                                      },
-                                      zoomControlsEnabled: false,
-                                      scrollGesturesEnabled: false,
-                                      zoomGesturesEnabled: false,
-                                      rotateGesturesEnabled: false,
-                                      tiltGesturesEnabled: false,
-                                      myLocationButtonEnabled: false,
-                                      compassEnabled: false,
-                                      mapToolbarEnabled: false,
-                                      liteModeEnabled: true,
+                            ? AbsorbPointer(
+                                child: GoogleMap(
+                                  initialCameraPosition: CameraPosition(
+                                    target: LatLng(
+                                      _currentPosition!.latitude,
+                                      _currentPosition!.longitude,
                                     ),
-                                  )
-                                : Center(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(Icons.location_off_outlined,
-                                            size: 32, color: AppColors.outline),
-                                        const SizedBox(height: 8),
-                                        Text('Ubicación no disponible',
-                                            style: TextStyle(
-                                                fontSize: 12, color: AppColors.textSecondary)),
-                                      ],
-                                    ),
+                                    zoom: 15,
                                   ),
+                                  markers: {
+                                    Marker(
+                                      markerId: const MarkerId(
+                                        'report_location',
+                                      ),
+                                      position: LatLng(
+                                        _currentPosition!.latitude,
+                                        _currentPosition!.longitude,
+                                      ),
+                                    ),
+                                  },
+                                  zoomControlsEnabled: false,
+                                  scrollGesturesEnabled: false,
+                                  zoomGesturesEnabled: false,
+                                  rotateGesturesEnabled: false,
+                                  tiltGesturesEnabled: false,
+                                  myLocationButtonEnabled: false,
+                                  compassEnabled: false,
+                                  mapToolbarEnabled: false,
+                                  liteModeEnabled: true,
+                                ),
+                              )
+                            : Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.location_off_outlined,
+                                      size: 32,
+                                      color: AppColors.outline,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Ubicación no disponible',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -687,13 +789,17 @@ class _CreateWrittenReportScreenState
                       child: Row(
                         children: [
                           Container(
-                            width: 32, height: 32,
+                            width: 32,
+                            height: 32,
                             decoration: BoxDecoration(
                               color: AppColors.primaryContainer.withAlpha(50),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.location_on_rounded,
-                                color: AppColors.primary, size: 20),
+                            child: const Icon(
+                              Icons.location_on_rounded,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -703,31 +809,42 @@ class _CreateWrittenReportScreenState
                                 const Text(
                                   'UBICACIÓN ACTUAL',
                                   style: TextStyle(
-                                    fontSize: 10, fontWeight: FontWeight.bold,
-                                    color: AppColors.textSecondary, letterSpacing: 1.0,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary,
+                                    letterSpacing: 1.0,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 _isGettingLocation
                                     ? const SizedBox(
-                                        height: 14, width: 14,
-                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                        height: 14,
+                                        width: 14,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
                                       )
                                     : Text(
                                         _locationLabel ?? 'Buscando...',
                                         style: const TextStyle(
-                                          fontSize: 14, fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
                                           color: AppColors.textPrimary,
                                         ),
-                                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                               ],
                             ),
                           ),
                           TextButton(
-                            onPressed: _isGettingLocation ? null : _loadCurrentLocation,
-                            child: const Text('Actualizar',
-                                style: TextStyle(color: AppColors.primary)),
+                            onPressed: _isGettingLocation
+                                ? null
+                                : _loadCurrentLocation,
+                            child: const Text(
+                              'Actualizar',
+                              style: TextStyle(color: AppColors.primary),
+                            ),
                           ),
                         ],
                       ),
@@ -746,17 +863,24 @@ class _CreateWrittenReportScreenState
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Evidencia visual',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                        const Text(
+                          'Evidencia visual',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         if (_imageBytes != null)
                           TextButton(
                             onPressed: () => setState(() {
                               _imagePath = null;
                               _imageBytes = null;
                             }),
-                            child: const Text('Quitar',
-                                style: TextStyle(color: AppColors.error)),
-                          )
+                            child: const Text(
+                              'Quitar',
+                              style: TextStyle(color: AppColors.error),
+                            ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -769,39 +893,56 @@ class _CreateWrittenReportScreenState
                           color: AppColors.surfaceContainerLow.withAlpha(150),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: AppColors.border.withAlpha(100),
-                              width: 2,
-                              strokeAlign: BorderSide.strokeAlignOutside),
+                            color: AppColors.border.withAlpha(100),
+                            width: 2,
+                            strokeAlign: BorderSide.strokeAlignOutside,
+                          ),
                         ),
                         child: _isPickingImage
                             ? const Center(child: CircularProgressIndicator())
                             : _imageBytes != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.memory(_imageBytes!, fit: BoxFit.cover),
-                                  )
-                                : Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: 48, height: 48,
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primaryContainer.withAlpha(25),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(Icons.photo_camera_rounded,
-                                            color: AppColors.primary, size: 24),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      const Text('Tomar foto o subir',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w500, fontSize: 14)),
-                                      const SizedBox(height: 4),
-                                      const Text('Formatos JPG, PNG (Max 5MB)',
-                                          style: TextStyle(
-                                              fontSize: 12, color: AppColors.textSecondary)),
-                                    ],
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.memory(
+                                  _imageBytes!,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryContainer
+                                          .withAlpha(25),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.photo_camera_rounded,
+                                      color: AppColors.primary,
+                                      size: 24,
+                                    ),
                                   ),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'Tomar foto o subir',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    'Formatos JPG, PNG (Max 5MB)',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
                       ),
                     ),
                   ],
@@ -812,7 +953,9 @@ class _CreateWrittenReportScreenState
               // FIX 1 — paso 5: Enviar (deshabilitado hasta que IA clasifique)
               VialButton(
                 onPressed: canSubmit ? _submitReport : null,
-                text: canSubmit ? 'Enviar reporte' : 'Analiza con IA para enviar',
+                text: canSubmit
+                    ? 'Enviar reporte'
+                    : 'Analiza con IA para enviar',
                 isLoading: _isLoading,
                 icon: Icon(
                   canSubmit ? Icons.send_rounded : Icons.lock_outline_rounded,

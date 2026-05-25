@@ -1,12 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:cross_file/cross_file.dart';
 
 class ReportAudioPlayer extends StatefulWidget {
-  const ReportAudioPlayer({
-    super.key,
-    required this.audioPath,
-  });
+  const ReportAudioPlayer({super.key, required this.audioPath});
 
   final String audioPath;
 
@@ -40,8 +38,23 @@ class _ReportAudioPlayerState extends State<ReportAudioPlayer> {
       if (path.startsWith('http://') || path.startsWith('https://')) {
         await _player.setUrl(path);
       } else if (kIsWeb) {
-        await _player.setUrl(path);
+        setState(() {
+          _errorMessage = 'No se pudo cargar el audio';
+        });
+        return;
       } else {
+        try {
+          final length = await XFile(path).length();
+          if (length <= 0) {
+            throw Exception('Archivo vacío');
+          }
+        } catch (_) {
+          if (!mounted) return;
+          setState(() {
+            _errorMessage = 'No se pudo cargar el audio';
+          });
+          return;
+        }
         await _player.setFilePath(path);
       }
 
@@ -77,9 +90,18 @@ class _ReportAudioPlayerState extends State<ReportAudioPlayer> {
     final theme = Theme.of(context);
 
     if (_errorMessage != null) {
-      return Text(
-        _errorMessage!,
-        style: theme.textTheme.bodyMedium,
+      return Row(
+        children: [
+          Icon(
+            Icons.error_outline_rounded,
+            size: 18,
+            color: theme.colorScheme.error,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(_errorMessage!, style: theme.textTheme.bodyMedium),
+          ),
+        ],
       );
     }
 
@@ -108,7 +130,9 @@ class _ReportAudioPlayerState extends State<ReportAudioPlayer> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
               children: [
                 FilledButton.icon(
                   onPressed: () async {
@@ -121,15 +145,12 @@ class _ReportAudioPlayerState extends State<ReportAudioPlayer> {
                   icon: Icon(
                     isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
                   ),
-                  label: Text(
-                    isPlaying ? 'Pausar audio' : 'Reproducir audio',
-                  ),
+                  label: Text(isPlaying ? 'Pausar audio' : 'Reproducir audio'),
                 ),
-                const SizedBox(width: 12),
                 OutlinedButton.icon(
                   onPressed: () async {
-                    await _player.seek(Duration.zero);
                     await _player.pause();
+                    await _player.seek(Duration.zero);
                   },
                   icon: const Icon(Icons.stop_rounded),
                   label: const Text('Detener'),
@@ -151,10 +172,12 @@ class _ReportAudioPlayerState extends State<ReportAudioPlayer> {
                       position = total;
                     }
 
-                    final maxValue =
-                        total.inMilliseconds <= 0 ? 1.0 : total.inMilliseconds.toDouble();
-                    final currentValue =
-                        position.inMilliseconds.clamp(0, maxValue.toInt()).toDouble();
+                    final maxValue = total.inMilliseconds <= 0
+                        ? 1.0
+                        : total.inMilliseconds.toDouble();
+                    final currentValue = position.inMilliseconds
+                        .clamp(0, maxValue.toInt())
+                        .toDouble();
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

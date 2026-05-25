@@ -26,8 +26,11 @@ class NotificationsScreen extends ConsumerWidget {
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.of(context).maybePop(),
-                      child: const Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 18, color: AppColors.text),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 18,
+                        color: AppColors.text,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -77,8 +80,11 @@ class NotificationsScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.info_outline_rounded,
-                            size: 12, color: AppColors.faint),
+                        const Icon(
+                          Icons.info_outline_rounded,
+                          size: 12,
+                          color: AppColors.faint,
+                        ),
                         const SizedBox(width: 5),
                         Text(
                           'Predicciones de IA · No reemplazan a autoridades',
@@ -118,13 +124,13 @@ class _RiskSummaryCard extends StatelessWidget {
         final riskLevel = total >= 20
             ? 'Alto'
             : total >= 8
-                ? 'Moderado'
-                : 'Bajo';
+            ? 'Moderado'
+            : 'Bajo';
         final riskColor = total >= 20
             ? AppColors.error
             : total >= 8
-                ? AppColors.warning
-                : AppColors.success;
+            ? AppColors.warning
+            : AppColors.success;
         return AppCard(
           radius: 24,
           padding: const EdgeInsets.all(20),
@@ -164,11 +170,14 @@ class _RiskSummaryCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.update_rounded,
-                      size: 12, color: AppColors.faint),
+                  const Icon(
+                    Icons.update_rounded,
+                    size: 12,
+                    color: AppColors.faint,
+                  ),
                   const SizedBox(width: 5),
                   Text(
-                    'Datos en tiempo real',
+                    'Basado en datos recientes',
                     style: GoogleFonts.dmSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w300,
@@ -190,7 +199,11 @@ class _CategoryPredictions extends StatelessWidget {
   const _CategoryPredictions({required this.analyticsRef});
 
   static const _riskLabels = ['Riesgo alto', 'Riesgo medio', 'Bajo riesgo'];
-  static const _riskColors = [AppColors.error, AppColors.warning, AppColors.success];
+  static const _riskColors = [
+    AppColors.error,
+    AppColors.warning,
+    AppColors.success,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -213,9 +226,8 @@ class _CategoryPredictions extends StatelessWidget {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ReportListScreen(
-                      initialCategory: cats[i].category,
-                    ),
+                    builder: (_) =>
+                        ReportListScreen(initialCategory: cats[i].category),
                   ),
                 ),
               ),
@@ -258,7 +270,9 @@ class _PredictionTile extends StatelessWidget {
             height: 52,
             margin: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
-                color: levelColor, borderRadius: AppRadius.borderFull),
+              color: levelColor,
+              borderRadius: AppRadius.borderFull,
+            ),
           ),
           Expanded(
             child: Column(
@@ -277,7 +291,9 @@ class _PredictionTile extends StatelessWidget {
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: levelColor.withAlpha(25),
                         borderRadius: AppRadius.borderFull,
