@@ -9,16 +9,13 @@ import 'package:reportes_ai/app/theme/app_spacing.dart';
 import 'package:reportes_ai/data/models/report_model.dart';
 import 'package:reportes_ai/shared/widgets/app_card.dart';
 import 'package:reportes_ai/shared/widgets/custom_app_bar.dart';
-import 'package:reportes_ai/shared/widgets/primary_button.dart';
+import 'package:reportes_ai/shared/widgets/report_audio_player.dart';
 import 'package:reportes_ai/shared/widgets/status_badge.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
 
 class ReportDetailScreen extends ConsumerWidget {
-  const ReportDetailScreen({
-    super.key,
-    required this.report,
-  });
+  const ReportDetailScreen({super.key, required this.report});
 
   final ReportModel report;
 
@@ -30,8 +27,18 @@ class ReportDetailScreen extends ConsumerWidget {
 
   String _formatDate(DateTime date) {
     const months = [
-      'ene', 'feb', 'mar', 'abr', 'may', 'jun',
-      'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
+      'ene',
+      'feb',
+      'mar',
+      'abr',
+      'may',
+      'jun',
+      'jul',
+      'ago',
+      'sep',
+      'oct',
+      'nov',
+      'dic',
     ];
     return '${date.day} ${months[date.month - 1]}. ${date.year}';
   }
@@ -42,8 +49,7 @@ class ReportDetailScreen extends ConsumerWidget {
       return 'Este reporte no tiene fecha de resolución configurada.';
     }
 
-    final now = DateTime.now();
-    final difference = expiresAt.difference(now);
+    final difference = expiresAt.difference(DateTime.now());
 
     if (difference.inSeconds <= 0) {
       return 'Este reporte fue marcado como atendido automáticamente.';
@@ -54,7 +60,6 @@ class ReportDetailScreen extends ConsumerWidget {
       return 'Se resuelve automáticamente en $mins ${mins == 1 ? "minuto" : "minutos"}.';
     }
 
-    // FIX: show days when the period is 24 hours or more
     if (difference.inHours >= 24) {
       final days = (difference.inHours / 24.0).ceil();
       return 'Se resuelve automáticamente en $days ${days == 1 ? "día" : "días"}.';
@@ -93,18 +98,18 @@ class ReportDetailScreen extends ConsumerWidget {
       await ref.read(reportRepositoryProvider).deleteReport(report.id);
       refreshReports(ref);
 
-      if (context.mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Reporte eliminado correctamente')),
-        );
-      }
+      if (!context.mounted) return;
+
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Reporte eliminado correctamente')),
+      );
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-        );
-      }
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
     }
   }
 
@@ -112,22 +117,21 @@ class ReportDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final session = ref.watch(sessionProvider);
-    // FIX: validate that at least one path is non-empty (not just that the list is non-empty)
-    final hasImage = report.imagePaths.any((p) => p.isNotEmpty);
+    final imagePath = report.imagePaths
+        .where((path) => path.trim().isNotEmpty)
+        .cast<String?>()
+        .firstOrNull;
+    final audioPath = report.audioPath?.trim();
     final canDelete = session.userId == report.userId;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: const CustomAppBar(
-        title: 'Detalle del reporte',
-        showBack: true,
-      ),
+      appBar: const CustomAppBar(title: 'Detalle del reporte', showBack: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.screenH),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Header card ─────────────────────────────────────────────────
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +153,10 @@ class ReportDetailScreen extends ConsumerWidget {
                         tag: 'status_${report.id}',
                         child: Material(
                           type: MaterialType.transparency,
-                          child: StatusBadge(status: report.status, showIcon: true),
+                          child: StatusBadge(
+                            status: report.status,
+                            showIcon: true,
+                          ),
                         ),
                       ),
                     ],
@@ -167,15 +174,12 @@ class ReportDetailScreen extends ConsumerWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: AppSpacing.lg),
-
-            // ── Description ─────────────────────────────────────────────────
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _CardLabel('Descripción'),
+                  const _CardLabel('Descripción'),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     report.description,
@@ -189,21 +193,21 @@ class ReportDetailScreen extends ConsumerWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: AppSpacing.lg),
-
-            // ── Expiration ──────────────────────────────────────────────────
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _CardLabel('Vigencia'),
+                  const _CardLabel('Vigencia'),
                   const SizedBox(height: AppSpacing.sm),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.timer_outlined,
-                          size: 18, color: AppColors.textSecondary),
+                      const Icon(
+                        Icons.timer_outlined,
+                        size: 18,
+                        color: AppColors.textSecondary,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -234,8 +238,6 @@ class ReportDetailScreen extends ConsumerWidget {
                 ],
               ),
             ),
-
-            // ── Location ────────────────────────────────────────────────────
             if (report.locationLabel != null ||
                 report.latitude != null ||
                 report.longitude != null) ...[
@@ -244,7 +246,7 @@ class ReportDetailScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _CardLabel('Ubicación'),
+                    const _CardLabel('Ubicación'),
                     const SizedBox(height: AppSpacing.sm),
                     if (report.locationLabel != null)
                       _InfoRow(
@@ -263,28 +265,35 @@ class ReportDetailScreen extends ConsumerWidget {
                 ),
               ),
             ],
-
-            // ── Image ───────────────────────────────────────────────────────
-            if (hasImage) ...[
+            if (imagePath != null) ...[
               const SizedBox(height: AppSpacing.lg),
               AppCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _CardLabel('Imagen adjunta'),
+                    const _CardLabel('Imagen adjunta'),
                     const SizedBox(height: AppSpacing.sm),
-                    _ReportImagePreview(imagePath: report.imagePaths.first),
+                    _ReportImagePreview(imagePath: imagePath),
                   ],
                 ),
               ),
             ],
-
-            // ── Ownership notice ─────────────────────────────────────────
+            if (audioPath != null && audioPath.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.lg),
+              AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _CardLabel('Audio adjunto'),
+                    const SizedBox(height: AppSpacing.sm),
+                    ReportAudioPlayer(audioPath: audioPath),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: AppSpacing.lg),
             AppCard(
-              color: canDelete
-                  ? AppColors.primary.withAlpha(8)
-                  : null,
+              color: canDelete ? AppColors.primary.withAlpha(8) : null,
               child: Row(
                 children: [
                   Icon(
@@ -310,18 +319,25 @@ class ReportDetailScreen extends ConsumerWidget {
                 ],
               ),
             ),
-
-            // ── Delete button ────────────────────────────────────────────
             if (canDelete) ...[
               const SizedBox(height: AppSpacing.md),
-              PrimaryButton(
-                label: 'Eliminar reporte',
-                backgroundColor: theme.colorScheme.errorContainer,
-                foregroundColor: theme.colorScheme.error,
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.error,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  ),
+                ),
                 onPressed: () => _confirmDelete(context, ref),
+                icon: const Icon(Icons.delete_outline_rounded),
+                label: const Text('Eliminar reporte'),
               ),
             ],
-
             const SizedBox(height: AppSpacing.xl),
           ],
         ),
@@ -338,12 +354,13 @@ class _CardLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Text(
       text,
       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-            letterSpacing: 0.3,
-          ),
+        color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+        letterSpacing: 0.3,
+      ),
     );
   }
 }
@@ -357,7 +374,9 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+    final color = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,11 +386,7 @@ class _InfoRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: TextStyle(
-              fontSize: 14,
-              color: color,
-              height: 1.4,
-            ),
+            style: TextStyle(fontSize: 14, color: color, height: 1.4),
           ),
         ),
       ],
@@ -384,7 +399,6 @@ class _ReportImagePreview extends StatelessWidget {
 
   final String imagePath;
 
-  // FIX: detect network URLs and use Image.network; local paths use XFile as before
   bool get _isNetworkUrl =>
       imagePath.startsWith('http://') || imagePath.startsWith('https://');
 
@@ -392,7 +406,6 @@ class _ReportImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // FIX: network path → Image.network with descriptive error
     if (_isNetworkUrl) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -401,30 +414,34 @@ class _ReportImagePreview extends StatelessWidget {
           height: 220,
           width: double.infinity,
           fit: BoxFit.cover,
-          loadingBuilder: (_, child, progress) => progress == null
-              ? child
-              : const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 18, height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      SizedBox(width: 12),
-                      Text('Cargando imagen...'),
-                    ],
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-                ),
-          errorBuilder: (_, __, ___) => const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Text('No se pudo cargar desde la red.'),
-          ),
+                  SizedBox(width: 12),
+                  Text('Cargando imagen...'),
+                ],
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text('No se pudo cargar desde la red.'),
+            );
+          },
         ),
       );
     }
 
-    // FIX: local path → FutureBuilder with XFile, descriptive error
     return FutureBuilder<Uint8List>(
       future: _loadBytes(),
       builder: (context, snapshot) {
@@ -434,7 +451,8 @@ class _ReportImagePreview extends StatelessWidget {
             child: Row(
               children: [
                 SizedBox(
-                  width: 18, height: 18,
+                  width: 18,
+                  height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
                 SizedBox(width: 12),

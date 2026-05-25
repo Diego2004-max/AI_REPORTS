@@ -47,20 +47,26 @@ class AiClassificationCard extends StatelessWidget {
                   color: AppColors.primary.withAlpha(20),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.auto_awesome_rounded,
-                    color: AppColors.primary, size: 16),
+                child: const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: AppColors.primary,
+                  size: 16,
+                ),
               ),
               const SizedBox(width: 8),
               const Text(
                 'Análisis de IA',
                 style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
               ),
               const Spacer(),
-              _ConfidenceBadge(label: classification.confidenceLabel,
-                  confidence: classification.confidence),
+              _ConfidenceBadge(
+                label: classification.confidenceLabel,
+                confidence: classification.confidence,
+              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -97,16 +103,22 @@ class AiClassificationCard extends StatelessWidget {
               runSpacing: 6,
               children: classification.entities.map((e) {
                 return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: Text(e,
-                      style: const TextStyle(
-                          fontSize: 11, color: AppColors.textSecondary)),
+                  child: Text(
+                    e,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 );
               }).toList(),
             ),
@@ -152,24 +164,25 @@ class _SuggestionRow extends StatelessWidget {
       children: [
         Icon(icon, size: 14, color: AppColors.textSecondary),
         const SizedBox(width: 6),
-        Text(label,
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textSecondary)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        ),
         const SizedBox(width: 8),
         Text(
           value,
           style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: valueColor ?? AppColors.textPrimary),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: valueColor ?? AppColors.textPrimary,
+          ),
         ),
         const Spacer(),
         if (onAccept != null)
           GestureDetector(
             onTap: onAccept,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 // FIX: "Editar" uses outline style; "Aplicar" uses filled style
                 color: isApplied ? Colors.transparent : AppColors.primary,
@@ -181,9 +194,10 @@ class _SuggestionRow extends StatelessWidget {
               child: Text(
                 isApplied ? 'Editar' : 'Aplicar',
                 style: TextStyle(
-                    fontSize: 11,
-                    color: isApplied ? AppColors.primary : Colors.white,
-                    fontWeight: FontWeight.w600),
+                  fontSize: 11,
+                  color: isApplied ? AppColors.primary : Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -199,27 +213,36 @@ class _PriorityBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final normalizedScore = score.clamp(0, 100).toInt();
     final color = score >= 66
         ? AppColors.error
         : score >= 36
-            ? AppColors.warning
-            : AppColors.success;
+        ? AppColors.warning
+        : AppColors.success;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Icon(Icons.speed_rounded, size: 14,
-                color: AppColors.textSecondary),
+            const Icon(
+              Icons.speed_rounded,
+              size: 14,
+              color: AppColors.textSecondary,
+            ),
             const SizedBox(width: 6),
-            const Text('Prioridad',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            const Text(
+              'Prioridad',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
             const Spacer(),
             Text(
-              '$score / 100',
+              '$normalizedScore / 100',
               style: TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w700, color: color),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
             ),
           ],
         ),
@@ -227,7 +250,7 @@ class _PriorityBar extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
-            value: score / 100,
+            value: normalizedScore / 100,
             minHeight: 6,
             backgroundColor: AppColors.surfaceContainerHigh,
             valueColor: AlwaysStoppedAnimation<Color>(color),
@@ -249,8 +272,8 @@ class _ConfidenceBadge extends StatelessWidget {
     final color = confidence >= 0.85
         ? AppColors.success
         : confidence >= 0.6
-            ? AppColors.warning
-            : AppColors.error;
+        ? AppColors.warning
+        : AppColors.error;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -262,7 +285,10 @@ class _ConfidenceBadge extends StatelessWidget {
       child: Text(
         'Confianza $label',
         style: TextStyle(
-            fontSize: 10, fontWeight: FontWeight.w600, color: color),
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
       ),
     );
   }

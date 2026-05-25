@@ -38,6 +38,12 @@ class ReportModel {
   });
 
   Map<String, dynamic> toMap() {
+    final cleanImagePaths = imagePaths
+        .map((path) => path.trim())
+        .where((path) => path.isNotEmpty)
+        .toList();
+    final cleanAudioPath = audioPath?.trim();
+
     return {
       'id': id,
       'userId': userId,
@@ -50,8 +56,8 @@ class ReportModel {
       'locationLabel': locationLabel,
       'latitude': latitude,
       'longitude': longitude,
-      'imagePaths': imagePaths,
-      'audioPath': audioPath,
+      'imagePaths': cleanImagePaths,
+      'audioPath': cleanAudioPath?.isNotEmpty == true ? cleanAudioPath : null,
       'aiCategory': aiCategory,
       'aiConfidence': aiConfidence,
       'priorityScore': priorityScore,
@@ -62,7 +68,16 @@ class ReportModel {
   factory ReportModel.fromMap(Map<String, dynamic> map) {
     final createdAtRaw = map['createdAt'] ?? map['created_at'];
     final expiresAtRaw = map['expiresAt'] ?? map['expires_at'];
-    final imageUrl = map['image_url'] as String?;
+    final imageUrl = (map['image_url'] as String?)?.trim();
+    final rawImagePaths =
+        (map['imagePaths'] as List?)
+            ?.cast<String>()
+            .map((path) => path.trim())
+            .where((path) => path.isNotEmpty)
+            .toList() ??
+        const <String>[];
+    final audioUrl = ((map['audioPath'] ?? map['audio_url']) as String?)
+        ?.trim();
 
     return ReportModel(
       id: map['id'] as String,
@@ -72,19 +87,21 @@ class ReportModel {
       category: map['category'] as String,
       status: map['status'] as String,
       createdAt: DateTime.parse(createdAtRaw as String),
-      expiresAt:
-          expiresAtRaw != null ? DateTime.parse(expiresAtRaw as String) : null,
+      expiresAt: expiresAtRaw != null
+          ? DateTime.parse(expiresAtRaw as String)
+          : null,
       locationLabel: (map['locationLabel'] ?? map['location_label']) as String?,
       latitude: (map['latitude'] as num?)?.toDouble(),
       longitude: (map['longitude'] as num?)?.toDouble(),
-      imagePaths: (map['imagePaths'] as List?)?.cast<String>() ??
-          (imageUrl != null && imageUrl.isNotEmpty ? [imageUrl] : const []),
-      audioPath: (map['audioPath'] ?? map['audio_url']) as String?,
+      imagePaths: rawImagePaths.isNotEmpty
+          ? rawImagePaths
+          : (imageUrl != null && imageUrl.isNotEmpty ? [imageUrl] : const []),
+      audioPath: audioUrl != null && audioUrl.isNotEmpty ? audioUrl : null,
       aiCategory: (map['aiCategory'] ?? map['ai_category']) as String?,
-      aiConfidence:
-          ((map['aiConfidence'] ?? map['ai_confidence']) as num?)?.toDouble(),
-      priorityScore:
-          ((map['priorityScore'] ?? map['priority_score']) as num?)?.toDouble(),
+      aiConfidence: ((map['aiConfidence'] ?? map['ai_confidence']) as num?)
+          ?.toDouble(),
+      priorityScore: ((map['priorityScore'] ?? map['priority_score']) as num?)
+          ?.toDouble(),
       credibilityScore:
           ((map['credibilityScore'] ?? map['credibility_score']) as num?)
               ?.toDouble(),
