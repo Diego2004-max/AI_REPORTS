@@ -19,13 +19,18 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionProvider);
     final statsAsync = ref.watch(userReportStatsProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
     final initials = (session.userName?.isNotEmpty ?? false)
         ? session.userName!.substring(0, 1).toUpperCase()
         : 'U';
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: AppBackground(
         child: SafeArea(
           child: ListView(
@@ -41,7 +46,7 @@ class ProfileScreen extends ConsumerWidget {
                     fontSize: 24,
                     fontWeight: FontWeight.w400,
                     fontStyle: FontStyle.italic,
-                    color: isDark ? AppColors.darkTextPrimary : AppColors.text,
+                    color: textPrimary,
                   ),
                 ),
               ),
@@ -49,10 +54,10 @@ class ProfileScreen extends ConsumerWidget {
               Center(
                 child: Text(
                   session.email ?? 'Sin correo',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w300,
-                    color: AppColors.muted,
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    color: textSecondary,
                   ),
                 ),
               ),
@@ -66,8 +71,10 @@ class ProfileScreen extends ConsumerWidget {
                   child: Row(
                     children: [
                       ProfileStat(value: '${stats.total}', label: 'Total'),
-                      ProfileStat(value: '${stats.attended}', label: 'Atendidos'),
-                      ProfileStat(value: '${stats.reviewing}', label: 'Revisión'),
+                      ProfileStat(
+                        value: '${stats.reviewing}',
+                        label: 'Revisión',
+                      ),
                     ],
                   ),
                 ),
@@ -83,7 +90,9 @@ class ProfileScreen extends ConsumerWidget {
                       label: 'Mi información',
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const EditProfileScreen(),
+                        ),
                       ),
                     ),
                     MenuItem(
@@ -105,7 +114,9 @@ class ProfileScreen extends ConsumerWidget {
                       label: 'Ajustes',
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsScreen(),
+                        ),
                       ),
                     ),
                     MenuItem(
@@ -120,7 +131,9 @@ class ProfileScreen extends ConsumerWidget {
                           context: context,
                           builder: (ctx) => AlertDialog(
                             title: const Text('Cerrar sesión'),
-                            content: const Text('¿Estás seguro de que deseas cerrar sesión?'),
+                            content: const Text(
+                              '¿Estás seguro de que deseas cerrar sesión?',
+                            ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.of(ctx).pop(false),
@@ -134,7 +147,9 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                         );
                         if (confirmed == true) {
-                          await ref.read(sessionProvider.notifier).clearSession();
+                          await ref
+                              .read(sessionProvider.notifier)
+                              .clearSession();
                           if (context.mounted) context.go(AppRoutes.login);
                         }
                       },

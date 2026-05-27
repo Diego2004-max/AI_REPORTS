@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -16,7 +15,7 @@ import 'package:reportes_ai/data/models/ai_classification.dart';
 import 'package:reportes_ai/shared/widgets/ai_classification_card.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
-import 'package:reportes_ai/shared/widgets/vial_card.dart';
+import 'package:reportes_ai/shared/widgets/app_card.dart';
 import 'package:reportes_ai/shared/widgets/vial_button.dart';
 
 class CreateWrittenReportScreen extends ConsumerStatefulWidget {
@@ -52,6 +51,47 @@ class _CreateWrittenReportScreenState
 
   String? _imagePath;
   Uint8List? _imageBytes;
+
+  bool _isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  Color _surfaceLowest(BuildContext context) => _isDark(context)
+      ? AppColors.darkSurface
+      : AppColors.surfaceContainerLowest;
+
+  Color _surfaceLow(BuildContext context) => _isDark(context)
+      ? AppColors.darkSurfaceVariant
+      : AppColors.surfaceContainerLow;
+
+  Color _inputSurface(BuildContext context) =>
+      _isDark(context) ? AppColors.darkSurfaceVariant : AppColors.surface;
+
+  Color _softBorder(BuildContext context) =>
+      _isDark(context) ? AppColors.darkBorder : AppColors.border.withAlpha(150);
+
+  Color _textPrimary(BuildContext context) =>
+      _isDark(context) ? AppColors.darkTextPrimary : AppColors.textPrimary;
+
+  Color _textSecondary(BuildContext context) =>
+      _isDark(context) ? AppColors.darkTextSecondary : AppColors.textSecondary;
+
+  TextStyle _fieldTextStyle(BuildContext context) {
+    return Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: _textPrimary(context),
+          height: 1.45,
+        ) ??
+        TextStyle(color: _textPrimary(context));
+  }
+
+  TextStyle _hintTextStyle(BuildContext context) {
+    return Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: _isDark(context)
+              ? AppColors.darkTextSecondary.withAlpha(210)
+              : AppColors.textSecondary.withAlpha(210),
+          height: 1.45,
+        ) ??
+        TextStyle(color: _textSecondary(context));
+  }
 
   @override
   void initState() {
@@ -139,15 +179,13 @@ class _CreateWrittenReportScreenState
   }
 
   Future<void> _showImageSourceSheet() async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: isDark ? AppColors.darkSurface : AppColors.surfaceContainerLowest,
+      backgroundColor: _surfaceLowest(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetContext) {
-        final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -159,18 +197,18 @@ class _CreateWrittenReportScreenState
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceVariant,
+                    color: _softBorder(sheetContext),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 ListTile(
                   leading: Icon(
                     Icons.photo_library_outlined,
-                    color: textColor,
+                    color: _textPrimary(sheetContext),
                   ),
                   title: Text(
                     'Seleccionar de galería',
-                    style: TextStyle(color: textColor),
+                    style: TextStyle(color: _textPrimary(sheetContext)),
                   ),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
@@ -180,11 +218,11 @@ class _CreateWrittenReportScreenState
                 ListTile(
                   leading: Icon(
                     Icons.photo_camera_outlined,
-                    color: textColor,
+                    color: _textPrimary(sheetContext),
                   ),
                   title: Text(
                     'Tomar foto',
-                    style: TextStyle(color: textColor),
+                    style: TextStyle(color: _textPrimary(sheetContext)),
                   ),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
@@ -235,15 +273,13 @@ class _CreateWrittenReportScreenState
 
   // FIX: bottom sheet so user can override the AI-assigned category
   Future<void> _showCategoryEditSheet() async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: isDark ? AppColors.darkSurface : AppColors.surfaceContainerLowest,
+      backgroundColor: _surfaceLowest(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
-        final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
@@ -256,7 +292,7 @@ class _CreateWrittenReportScreenState
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceVariant,
+                    color: _softBorder(ctx),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -265,7 +301,7 @@ class _CreateWrittenReportScreenState
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: textColor,
+                    color: _textPrimary(ctx),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -286,9 +322,12 @@ class _CreateWrittenReportScreenState
                         ),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.primary
-                              : AppColors.surfaceContainerLow,
+                              ? (_isDark(ctx)
+                                    ? AppColors.primaryLight
+                                    : AppColors.primary)
+                              : _surfaceLow(ctx),
                           borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: _softBorder(ctx)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -298,7 +337,7 @@ class _CreateWrittenReportScreenState
                               size: 18,
                               color: isSelected
                                   ? AppColors.onPrimary
-                                  : AppColors.textSecondary,
+                                  : _textSecondary(ctx),
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -307,7 +346,7 @@ class _CreateWrittenReportScreenState
                                 fontSize: 14,
                                 color: isSelected
                                     ? AppColors.onPrimary
-                                    : AppColors.textSecondary,
+                                    : _textSecondary(ctx),
                               ),
                             ),
                           ],
@@ -326,15 +365,13 @@ class _CreateWrittenReportScreenState
 
   // FIX: bottom sheet so user can override the AI-assigned severity
   Future<void> _showSeverityEditSheet() async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: isDark ? AppColors.darkSurface : AppColors.surfaceContainerLowest,
+      backgroundColor: _surfaceLowest(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
-        final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
@@ -347,7 +384,7 @@ class _CreateWrittenReportScreenState
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceVariant,
+                    color: _softBorder(ctx),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -356,7 +393,7 @@ class _CreateWrittenReportScreenState
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: textColor,
+                    color: _textPrimary(ctx),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -388,11 +425,11 @@ class _CreateWrittenReportScreenState
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected
-                ? color.withAlpha(30)
-                : AppColors.surfaceContainerLow,
+            color: isSelected ? color.withAlpha(30) : _surfaceLow(ctx),
             borderRadius: BorderRadius.circular(12),
-            border: isSelected ? Border.all(color: color, width: 1.5) : null,
+            border: isSelected
+                ? Border.all(color: color, width: 1.5)
+                : Border.all(color: _softBorder(ctx)),
           ),
           child: Column(
             children: [
@@ -407,7 +444,7 @@ class _CreateWrittenReportScreenState
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: isSelected ? color : AppColors.textSecondary,
+                  color: isSelected ? color : _textSecondary(ctx),
                 ),
               ),
             ],
@@ -453,8 +490,6 @@ class _CreateWrittenReportScreenState
     setState(() => _isLoading = true);
 
     try {
-      final generatedTitle = '$_selectedCategory - $_selectedSeverity';
-
       // Run AI pipeline (non-blocking: failures are silently skipped)
       AiClassification? aiResult = _aiResult;
       double credibilityScore = 1.0;
@@ -466,7 +501,17 @@ class _CreateWrittenReportScreenState
             description: description,
             locationLabel: _locationLabel,
           );
-          if (mounted) setState(() => _aiResult = aiResult);
+          if (mounted) {
+            setState(() {
+              _aiResult = aiResult;
+              if (aiResult!.suggestedCategory.trim().isNotEmpty) {
+                _selectedCategory = aiResult.suggestedCategory.trim();
+              }
+              if (aiResult.suggestedSeverity.trim().isNotEmpty) {
+                _selectedSeverity = aiResult.suggestedSeverity.trim();
+              }
+            });
+          }
         }
 
         if (aiResult != null) {
@@ -485,14 +530,22 @@ class _CreateWrittenReportScreenState
         // AI is optional — save report without AI fields on failure
       }
 
+      final finalCategory = _selectedCategory.trim().isEmpty
+          ? 'Otra'
+          : _selectedCategory.trim();
+      final finalSeverity = _selectedSeverity.trim().isEmpty
+          ? 'Moderado'
+          : _selectedSeverity.trim();
+      final generatedTitle = '$finalCategory - $finalSeverity';
+
       await ref
           .read(reportRepositoryProvider)
           .createReport(
             userId: userId,
             title: generatedTitle,
             description: description,
-            category: _selectedCategory,
-            severity: _selectedSeverity,
+            category: finalCategory,
+            severity: finalSeverity,
             locationLabel: _locationLabel,
             latitude: _currentPosition?.latitude,
             longitude: _currentPosition?.longitude,
@@ -513,7 +566,7 @@ class _CreateWrittenReportScreenState
         const SnackBar(content: Text('Reporte enviado correctamente')),
       );
 
-      Navigator.pop(context);
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -527,8 +580,9 @@ class _CreateWrittenReportScreenState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final scaffoldBg = theme.scaffoldBackgroundColor;
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryTone = isDark ? AppColors.primaryLight : AppColors.primary;
     // FIX: submit disabled until AI analysis has classified the report
     final canSubmit =
         _aiResult != null &&
@@ -543,50 +597,47 @@ class _CreateWrittenReportScreenState
         surfaceTintColor: Colors.transparent,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            color: (isDark ? AppColors.darkSurface : AppColors.surfaceContainerLowest).withAlpha(200),
-            border: Border(
-              bottom: BorderSide(color: AppColors.surfaceContainerHighest),
-            ),
+            color: _surfaceLowest(context).withAlpha(isDark ? 240 : 220),
+            border: Border(bottom: BorderSide(color: _softBorder(context))),
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.primary),
+          icon: Icon(Icons.arrow_back_rounded, color: primaryTone),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Nuevo reporte',
-          style: GoogleFonts.playfairDisplay(
-            color: AppColors.primary,
-            fontSize: 20,
-            fontWeight: FontWeight.w400,
-            fontStyle: FontStyle.italic,
-          ),
+          style:
+              (theme.appBarTheme.titleTextStyle ?? theme.textTheme.titleLarge)
+                  ?.copyWith(
+                    color: primaryTone,
+                    fontSize: 20,
+                    letterSpacing: 0,
+                  ),
         ),
         centerTitle: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 600),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               // FIX 1 — paso 1: Descripción + botón "Analizar con IA"
-              VialCard(
+              AppCard(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             'Descripción *',
-                            style: TextStyle(
+                            style: theme.textTheme.titleSmall?.copyWith(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
+                              color: _textPrimary(context),
                             ),
                           ),
                         ),
@@ -605,26 +656,28 @@ class _CreateWrittenReportScreenState
                                 vertical: 5,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withAlpha(15),
+                                color: primaryTone.withAlpha(isDark ? 30 : 18),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: AppColors.primary.withAlpha(60),
+                                  color: primaryTone.withAlpha(
+                                    isDark ? 95 : 70,
+                                  ),
                                 ),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     Icons.auto_awesome_rounded,
                                     size: 13,
-                                    color: AppColors.primary,
+                                    color: primaryTone,
                                   ),
-                                  SizedBox(width: 4),
+                                  const SizedBox(width: 4),
                                   Text(
                                     'Analizar con IA',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: AppColors.primary,
+                                      color: primaryTone,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -637,15 +690,16 @@ class _CreateWrittenReportScreenState
                     const SizedBox(height: 16),
                     Container(
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLow,
+                        color: _inputSurface(context),
                         borderRadius: BorderRadius.circular(12),
                         border: _descriptionError
                             ? Border.all(color: AppColors.error, width: 1.5)
-                            : null,
+                            : Border.all(color: _softBorder(context)),
                       ),
                       child: TextField(
                         controller: _descriptionController,
                         maxLines: 4,
+                        cursorColor: primaryTone,
                         onChanged: (_) {
                           if (_descriptionError) {
                             setState(() {
@@ -662,20 +716,18 @@ class _CreateWrittenReportScreenState
                             });
                           }
                         },
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText:
                               'Describe el incidente con detalle para que la IA lo clasifique correctamente...',
-                          hintStyle: TextStyle(
-                            color: AppColors.outline,
-                            fontSize: 14,
-                          ),
+                          hintStyle: _hintTextStyle(
+                            context,
+                          ).copyWith(fontSize: 14),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.all(16),
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.all(16),
                         ),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textPrimary,
-                        ),
+                        style: _fieldTextStyle(context).copyWith(fontSize: 14),
                       ),
                     ),
                     if (_descriptionError && _descriptionErrorText != null)
@@ -697,7 +749,7 @@ class _CreateWrittenReportScreenState
                           'Toca "Analizar con IA" para que el sistema clasifique el reporte.',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary.withAlpha(180),
+                            color: _textSecondary(context).withAlpha(210),
                             fontStyle: FontStyle.italic,
                           ),
                         ),
@@ -721,7 +773,7 @@ class _CreateWrittenReportScreenState
               ],
 
               // FIX 1 — paso 3: Ubicación (informativa, auto-capturada)
-              VialCard(
+              AppCard(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
@@ -730,8 +782,9 @@ class _CreateWrittenReportScreenState
                       height: 160,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerHigh,
+                        color: _surfaceLow(context),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _softBorder(context)),
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
@@ -773,17 +826,17 @@ class _CreateWrittenReportScreenState
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.location_off_outlined,
                                       size: 32,
-                                      color: AppColors.outline,
+                                      color: _textSecondary(context),
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
                                       'Ubicación no disponible',
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: AppColors.textSecondary,
+                                        color: _textSecondary(context),
                                       ),
                                     ),
                                   ],
@@ -795,8 +848,9 @@ class _CreateWrittenReportScreenState
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLow,
+                        color: _surfaceLow(context),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _softBorder(context)),
                       ),
                       child: Row(
                         children: [
@@ -804,12 +858,12 @@ class _CreateWrittenReportScreenState
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: AppColors.primaryContainer.withAlpha(50),
+                              color: primaryTone.withAlpha(isDark ? 32 : 50),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.location_on_rounded,
-                              color: AppColors.primary,
+                              color: primaryTone,
                               size: 20,
                             ),
                           ),
@@ -818,13 +872,13 @@ class _CreateWrittenReportScreenState
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'UBICACIÓN ACTUAL',
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.textSecondary,
-                                    letterSpacing: 1.0,
+                                    color: _textSecondary(context),
+                                    letterSpacing: 0,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
@@ -838,10 +892,10 @@ class _CreateWrittenReportScreenState
                                       )
                                     : Text(
                                         _locationLabel ?? 'Buscando...',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w600,
-                                          color: AppColors.textPrimary,
+                                          color: _textPrimary(context),
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -853,9 +907,9 @@ class _CreateWrittenReportScreenState
                             onPressed: _isGettingLocation
                                 ? null
                                 : _loadCurrentLocation,
-                            child: const Text(
+                            child: Text(
                               'Actualizar',
-                              style: TextStyle(color: AppColors.primary),
+                              style: TextStyle(color: primaryTone),
                             ),
                           ),
                         ],
@@ -867,7 +921,7 @@ class _CreateWrittenReportScreenState
               const SizedBox(height: 24),
 
               // FIX 1 — paso 4: Foto (opcional)
-              VialCard(
+              AppCard(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -875,11 +929,12 @@ class _CreateWrittenReportScreenState
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Evidencia visual',
-                          style: TextStyle(
+                          style: theme.textTheme.titleSmall?.copyWith(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
+                            color: _textPrimary(context),
                           ),
                         ),
                         if (_imageBytes != null)
@@ -902,10 +957,12 @@ class _CreateWrittenReportScreenState
                         height: _imageBytes == null ? 140 : 200,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLow.withAlpha(150),
+                          color: _surfaceLow(
+                            context,
+                          ).withAlpha(isDark ? 255 : 190),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: AppColors.border.withAlpha(100),
+                            color: _softBorder(context),
                             width: 2,
                             strokeAlign: BorderSide.strokeAlignOutside,
                           ),
@@ -927,30 +984,32 @@ class _CreateWrittenReportScreenState
                                     width: 48,
                                     height: 48,
                                     decoration: BoxDecoration(
-                                      color: AppColors.primaryContainer
-                                          .withAlpha(25),
+                                      color: primaryTone.withAlpha(
+                                        isDark ? 32 : 28,
+                                      ),
                                       shape: BoxShape.circle,
                                     ),
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.photo_camera_rounded,
-                                      color: AppColors.primary,
+                                      color: primaryTone,
                                       size: 24,
                                     ),
                                   ),
                                   const SizedBox(height: 12),
-                                  const Text(
+                                  Text(
                                     'Tomar foto o subir',
                                     style: TextStyle(
                                       fontWeight: FontWeight.w500,
                                       fontSize: 14,
+                                      color: _textPrimary(context),
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  const Text(
+                                  Text(
                                     'Formatos JPG, PNG (Max 5MB)',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: AppColors.textSecondary,
+                                      color: _textSecondary(context),
                                     ),
                                   ),
                                 ],
@@ -977,8 +1036,6 @@ class _CreateWrittenReportScreenState
               const SizedBox(height: 40),
             ],
           ),
-        ),
-      ),
         ),
       ),
     );

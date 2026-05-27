@@ -140,8 +140,8 @@ class _NavItem extends StatelessWidget {
     final color = selected
         ? theme.colorScheme.primary
         : theme.brightness == Brightness.dark
-            ? AppColors.darkTextSecondary
-            : AppColors.textSecondary;
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
 
     return InkWell(
       borderRadius: BorderRadius.circular(18),
@@ -151,15 +151,11 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              selected ? activeIcon : icon,
-              color: color,
-              size: 24,
-            ),
+            Icon(selected ? activeIcon : icon, color: color, size: 24),
             const SizedBox(height: 4),
             Text(
               label,
-              style: TextStyle(
+              style: theme.textTheme.labelSmall?.copyWith(
                 fontSize: 12,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: color,

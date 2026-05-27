@@ -39,9 +39,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final userId = session.userId;
 
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay sesión activa')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No hay sesión activa')));
       return;
     }
 
@@ -76,9 +76,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(sessionProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
+    final fieldBg = isDark ? AppColors.darkSurfaceVariant : AppColors.surface;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.border;
+    final primaryTone = isDark ? AppColors.primaryLight : AppColors.primary;
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: AppBackground(
         child: SafeArea(
           child: Column(
@@ -89,10 +98,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.of(context).maybePop(),
-                      child: const Icon(
+                      child: Icon(
                         Icons.arrow_back_ios_new_rounded,
                         size: 18,
-                        color: AppColors.text,
+                        color: textPrimary,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -102,7 +111,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         fontSize: 22,
                         fontWeight: FontWeight.w400,
                         fontStyle: FontStyle.italic,
-                        color: AppColors.text,
+                        color: textPrimary,
                       ),
                     ),
                   ],
@@ -122,16 +131,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             fontSize: 20,
                             fontWeight: FontWeight.w400,
                             fontStyle: FontStyle.italic,
-                            color: AppColors.text,
+                            color: textPrimary,
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           'Puedes cambiar tu nombre visible. El correo se mantiene como referencia de la cuenta.',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w300,
-                            color: AppColors.muted,
+                          style: GoogleFonts.playfairDisplay(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w400,
+                            color: textSecondary,
                             height: 1.55,
                           ),
                         ),
@@ -151,39 +160,70 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           },
                         ),
                         const SizedBox(height: 20),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 4, bottom: 8),
-                              child: Text(
-                                'CORREO ELECTRÓNICO',
-                                style: GoogleFonts.dmSans(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w300,
-                                  color: AppColors.faint,
-                                  letterSpacing: 0.8,
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: fieldBg,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: primaryTone.withAlpha(24),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: primaryTone.withAlpha(60),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.mail_outline_rounded,
+                                  size: 20,
+                                  color: primaryTone,
                                 ),
                               ),
-                            ),
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 18, vertical: 16),
-                              decoration: BoxDecoration(
-                                color: AppColors.surfaceVariant,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(
-                                session.email ?? '—',
-                                style: GoogleFonts.dmSans(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w300,
-                                  color: AppColors.muted,
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Correo electrónico',
+                                      style: GoogleFonts.playfairDisplay(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        fontStyle: FontStyle.italic,
+                                        color: textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      session.email ?? 'Sin correo registrado',
+                                      style: GoogleFonts.playfairDisplay(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w400,
+                                        color: textSecondary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Correo de referencia de la cuenta',
+                                      style: GoogleFonts.playfairDisplay(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                        color: textSecondary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 36),
                         PrimaryButton(

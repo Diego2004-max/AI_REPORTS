@@ -34,18 +34,20 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(
-        AppSpacing.appBarHeight + (bottom?.preferredSize.height ?? 0),
-      );
+    AppSpacing.appBarHeight + (bottom?.preferredSize.height ?? 0),
+  );
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final fg = foregroundColor ??
+    final fg =
+        foregroundColor ??
         theme.appBarTheme.foregroundColor ??
         theme.colorScheme.onSurface;
-    final bg = backgroundColor ??
+    final bg =
+        backgroundColor ??
         theme.appBarTheme.backgroundColor ??
         theme.scaffoldBackgroundColor;
 
@@ -92,33 +94,30 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               children: [
                 Text(
                   title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                    color: fg,
-                  ),
+                  style:
+                      (theme.appBarTheme.titleTextStyle ??
+                              theme.textTheme.titleLarge)
+                          ?.copyWith(letterSpacing: 0, color: fg),
                 ),
                 Text(
                   subtitle!,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.textSecondary,
                   ),
                 ),
               ],
             )
           : Text(
               title,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.3,
-                color: fg,
-              ),
+              style:
+                  (theme.appBarTheme.titleTextStyle ??
+                          theme.textTheme.titleLarge)
+                      ?.copyWith(letterSpacing: 0, color: fg),
             ),
       actions: actions != null
-          ? [
-              ...actions!,
-              const SizedBox(width: AppSpacing.sm),
-            ]
+          ? [...actions!, const SizedBox(width: AppSpacing.sm)]
           : null,
       bottom: bottom,
     );

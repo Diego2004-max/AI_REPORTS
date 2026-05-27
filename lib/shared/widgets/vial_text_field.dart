@@ -33,6 +33,15 @@ class VialTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final labelColor = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
+    final textColor = isDark
+        ? AppColors.darkTextPrimary
+        : AppColors.textPrimary;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -40,11 +49,11 @@ class VialTextField extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 0.5,
-                ),
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: labelColor,
+              letterSpacing: 0,
+            ),
           ),
         ),
         TextFormField(
@@ -56,10 +65,10 @@ class VialTextField extends StatelessWidget {
           onFieldSubmitted: onFieldSubmitted,
           onChanged: onChanged,
           validator: validator,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: textColor,
+            fontWeight: FontWeight.w500,
+          ),
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: prefixIcon,

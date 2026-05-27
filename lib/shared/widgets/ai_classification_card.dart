@@ -21,19 +21,32 @@ class AiClassificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryTone = isDark ? AppColors.primaryLight : AppColors.primary;
+    final secondaryText = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
+    final borderColor = isDark
+        ? AppColors.primaryLight.withAlpha(80)
+        : AppColors.primary.withAlpha(40);
+    final headerBg = isDark
+        ? AppColors.primaryLight.withAlpha(28)
+        : AppColors.primary.withAlpha(20);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primary.withAlpha(12),
-            AppColors.info.withAlpha(8),
+            AppColors.primary.withAlpha(isDark ? 22 : 12),
+            AppColors.info.withAlpha(isDark ? 14 : 8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withAlpha(40)),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,22 +57,22 @@ class AiClassificationCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha(20),
+                  color: headerBg,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.auto_awesome_rounded,
-                  color: AppColors.primary,
+                  color: primaryTone,
                   size: 16,
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'Análisis de IA',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
+                  color: primaryTone,
                 ),
               ),
               const Spacer(),
@@ -108,16 +121,17 @@ class AiClassificationCard extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
+                    color: isDark
+                        ? AppColors.darkSurfaceVariant
+                        : AppColors.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : AppColors.border,
+                    ),
                   ),
                   child: Text(
                     e,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 11, color: secondaryText),
                   ),
                 );
               }).toList(),
@@ -160,21 +174,28 @@ class _SuggestionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryTone = isDark ? AppColors.primaryLight : AppColors.primary;
+    final secondaryText = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
+    final primaryText = isDark
+        ? AppColors.darkTextPrimary
+        : AppColors.textPrimary;
+
     return Row(
       children: [
-        Icon(icon, size: 14, color: AppColors.textSecondary),
+        Icon(icon, size: 14, color: secondaryText),
         const SizedBox(width: 6),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: secondaryText)),
         const SizedBox(width: 8),
         Text(
           value,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: valueColor ?? AppColors.textPrimary,
+            color: valueColor ?? primaryText,
           ),
         ),
         const Spacer(),
@@ -185,17 +206,17 @@ class _SuggestionRow extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 // FIX: "Editar" uses outline style; "Aplicar" uses filled style
-                color: isApplied ? Colors.transparent : AppColors.primary,
+                color: isApplied ? Colors.transparent : primaryTone,
                 borderRadius: BorderRadius.circular(20),
                 border: isApplied
-                    ? Border.all(color: AppColors.primary.withAlpha(120))
+                    ? Border.all(color: primaryTone.withAlpha(120))
                     : null,
               ),
               child: Text(
                 isApplied ? 'Editar' : 'Aplicar',
                 style: TextStyle(
                   fontSize: 11,
-                  color: isApplied ? AppColors.primary : Colors.white,
+                  color: isApplied ? primaryTone : Colors.white,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -213,6 +234,11 @@ class _PriorityBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final secondaryText = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
     final normalizedScore = score.clamp(0, 100).toInt();
     final color = score >= 66
         ? AppColors.error
@@ -225,15 +251,11 @@ class _PriorityBar extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(
-              Icons.speed_rounded,
-              size: 14,
-              color: AppColors.textSecondary,
-            ),
+            Icon(Icons.speed_rounded, size: 14, color: secondaryText),
             const SizedBox(width: 6),
-            const Text(
+            Text(
               'Prioridad',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 12, color: secondaryText),
             ),
             const Spacer(),
             Text(
@@ -252,7 +274,9 @@ class _PriorityBar extends StatelessWidget {
           child: LinearProgressIndicator(
             value: normalizedScore / 100,
             minHeight: 6,
-            backgroundColor: AppColors.surfaceContainerHigh,
+            backgroundColor: isDark
+                ? AppColors.darkSurfaceVariant
+                : AppColors.surfaceContainerHigh,
             valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),

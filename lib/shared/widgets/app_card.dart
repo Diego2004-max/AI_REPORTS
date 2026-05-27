@@ -82,7 +82,8 @@ class StatCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    final badgeBg = iconBackground ??
+    final badgeBg =
+        iconBackground ??
         (theme.brightness == Brightness.dark
             ? scheme.primary.withAlpha(24)
             : scheme.primary.withAlpha(14));
@@ -101,11 +102,7 @@ class StatCard extends StatelessWidget {
                   color: badgeBg,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                 ),
-                child: Icon(
-                  icon,
-                  color: iconColor ?? scheme.primary,
-                  size: 18,
-                ),
+                child: Icon(icon, color: iconColor ?? scheme.primary, size: 18),
               ),
               const SizedBox(height: 8),
               Text(

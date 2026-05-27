@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reportes_ai/app/theme/app_colors.dart';
+import 'package:reportes_ai/app/theme/app_spacing.dart';
 import 'package:reportes_ai/features/reports/presentation/screens/create_audio_report_screen.dart';
 import 'package:reportes_ai/features/reports/presentation/screens/create_written_report_screen.dart';
-import 'package:reportes_ai/shared/widgets/shared_widgets.dart';
+import 'package:reportes_ai/shared/widgets/app_card.dart';
+import 'package:reportes_ai/shared/widgets/primary_button.dart';
 
 class CreateReportScreen extends StatelessWidget {
   const CreateReportScreen({super.key});
@@ -25,9 +26,36 @@ class CreateReportScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
+    final bgColors = isDark
+        ? const [AppColors.darkBg, AppColors.darkBg2, AppColors.darkBg]
+        : const [AppColors.bg, AppColors.bg2, AppColors.bg];
+
+    final titleStyle = theme.appBarTheme.titleTextStyle?.copyWith(
+      color: textPrimary,
+      fontSize: 22,
+    );
+    final headlineStyle = theme.appBarTheme.titleTextStyle?.copyWith(
+      color: textPrimary,
+      fontSize: 28,
+      height: 1.12,
+    );
+
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: AppBackground(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: bgColors,
+          ),
+        ),
         child: SafeArea(
           child: Column(
             children: [
@@ -35,24 +63,26 @@ class CreateReportScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
                 child: Row(
                   children: [
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).maybePop(),
-                      child: const Icon(
+                    IconButton(
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      icon: Icon(
                         Icons.arrow_back_ios_new_rounded,
                         size: 18,
-                        color: AppColors.text,
+                        color: textPrimary,
+                      ),
+                      style: IconButton.styleFrom(
+                        backgroundColor: isDark
+                            ? AppColors.darkSurface
+                            : AppColors.surface,
+                        side: BorderSide(
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : AppColors.border,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Crear reporte',
-                      style: GoogleFonts.playfairDisplay(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w400,
-                        fontStyle: FontStyle.italic,
-                        color: AppColors.text,
-                      ),
-                    ),
+                    const SizedBox(width: 10),
+                    Text('Crear reporte', style: titleStyle),
                   ],
                 ),
               ),
@@ -62,130 +92,51 @@ class CreateReportScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '¿Cómo quieres reportar?',
-                        style: GoogleFonts.playfairDisplay(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w400,
-                          fontStyle: FontStyle.italic,
-                          color: AppColors.text,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
+                      Text('¿Cómo quieres reportar?', style: headlineStyle),
+                      const SizedBox(height: 8),
                       Text(
                         'Elige el tipo de reporte que deseas enviar.',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w300,
-                          color: AppColors.muted,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: textSecondary,
+                          height: 1.45,
                         ),
                       ),
                       const SizedBox(height: 28),
-                      AppCard(
-                        radius: 24,
+                      _ReportOptionCard(
+                        icon: Icons.edit_note_rounded,
+                        title: 'Reporte escrito',
+                        description:
+                            'Opción para escribir manualmente el incidente.',
+                        points: const [
+                          'Título obligatorio',
+                          'Categoría obligatoria',
+                          'Descripción opcional',
+                          'Ubicación obligatoria',
+                          'Imagen opcional',
+                        ],
                         onTap: () => _openWritten(context),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: AppColors.accentSoft,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: const Icon(
-                                Icons.edit_note_rounded,
-                                color: AppColors.accent,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-                            Text(
-                              'Reporte escrito',
-                              style: GoogleFonts.playfairDisplay(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w400,
-                                fontStyle: FontStyle.italic,
-                                color: AppColors.text,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Opción para escribir manualmente el incidente.',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w300,
-                                color: AppColors.muted,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            const _FlowPoint(text: 'Título obligatorio'),
-                            const _FlowPoint(text: 'Categoría obligatoria'),
-                            const _FlowPoint(text: 'Descripción opcional'),
-                            const _FlowPoint(text: 'Ubicación obligatoria'),
-                            const _FlowPoint(text: 'Imagen opcional'),
-                            const SizedBox(height: 20),
-                            PrimaryButton(
-                              label: 'Continuar con reporte escrito',
-                              onPressed: () => _openWritten(context),
-                            ),
-                          ],
+                        button: PrimaryButton(
+                          label: 'Continuar con reporte escrito',
+                          onPressed: () => _openWritten(context),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      AppCard(
-                        radius: 24,
+                      _ReportOptionCard(
+                        icon: Icons.mic_none_rounded,
+                        title: 'Reporte por audio',
+                        description: 'Opción para enviar evidencia por audio.',
+                        points: const [
+                          'Título obligatorio',
+                          'Categoría obligatoria',
+                          'Audio obligatorio',
+                          'Ubicación obligatoria',
+                          'Imagen opcional',
+                          'Descripción opcional',
+                        ],
                         onTap: () => _openAudio(context),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: AppColors.surfaceVariant,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: const Icon(
-                                Icons.mic_none_rounded,
-                                color: AppColors.muted,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-                            Text(
-                              'Reporte por audio',
-                              style: GoogleFonts.playfairDisplay(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w400,
-                                fontStyle: FontStyle.italic,
-                                color: AppColors.text,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Opción para enviar evidencia por audio.',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w300,
-                                color: AppColors.muted,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            const _FlowPoint(text: 'Título obligatorio'),
-                            const _FlowPoint(text: 'Categoría obligatoria'),
-                            const _FlowPoint(text: 'Audio obligatorio'),
-                            const _FlowPoint(text: 'Ubicación obligatoria'),
-                            const _FlowPoint(text: 'Imagen opcional'),
-                            const _FlowPoint(text: 'Descripción opcional'),
-                            const SizedBox(height: 20),
-                            PrimaryButton(
-                              label: 'Continuar con reporte por audio',
-                              onPressed: () => _openAudio(context),
-                              ghost: true,
-                            ),
-                          ],
+                        button: PrimaryButton(
+                          label: 'Continuar con reporte por audio',
+                          onPressed: () => _openAudio(context),
                         ),
                       ),
                     ],
@@ -200,12 +151,95 @@ class CreateReportScreen extends StatelessWidget {
   }
 }
 
-class _FlowPoint extends StatelessWidget {
-  final String text;
-  const _FlowPoint({required this.text});
+class _ReportOptionCard extends StatelessWidget {
+  const _ReportOptionCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.points,
+    required this.onTap,
+    required this.button,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final List<String> points;
+  final VoidCallback onTap;
+  final Widget button;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
+    final iconBg = isDark
+        ? AppColors.primaryLight.withAlpha(28)
+        : AppColors.primary.withAlpha(18);
+    final iconColor = isDark ? AppColors.primaryLight : AppColors.primary;
+
+    return AppCard(
+      borderRadius: 24,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.border,
+              ),
+            ),
+            child: Icon(icon, color: iconColor, size: 23),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            title,
+            style: theme.appBarTheme.titleTextStyle?.copyWith(
+              fontSize: 21,
+              color: textPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            description,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: textSecondary,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...points.map((point) => _FlowPoint(text: point)),
+          const SizedBox(height: 20),
+          button,
+        ],
+      ),
+    );
+  }
+}
+
+class _FlowPoint extends StatelessWidget {
+  const _FlowPoint({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
+    final dotColor = isDark ? AppColors.primaryLight : AppColors.primary;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -214,18 +248,16 @@ class _FlowPoint extends StatelessWidget {
           Container(
             width: 5,
             height: 5,
-            decoration: const BoxDecoration(
-              color: AppColors.faint,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
           ),
           const SizedBox(width: 10),
-          Text(
-            text,
-            style: GoogleFonts.dmSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w300,
-              color: AppColors.muted,
+          Expanded(
+            child: Text(
+              text,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: textColor,
+                height: 1.35,
+              ),
             ),
           ),
         ],

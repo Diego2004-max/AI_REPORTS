@@ -12,7 +12,7 @@ import 'package:reportes_ai/data/models/ai_classification.dart';
 import 'package:reportes_ai/shared/widgets/ai_classification_card.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
-import 'package:reportes_ai/shared/widgets/vial_card.dart';
+import 'package:reportes_ai/shared/widgets/app_card.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:reportes_ai/shared/widgets/vial_button.dart';
 
@@ -25,11 +25,7 @@ class CreateAudioReportScreen extends ConsumerStatefulWidget {
 }
 
 class _CreateAudioReportScreenState
-    extends ConsumerState<CreateAudioReportScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late Animation<double> _pulseScale;
-  late Animation<double> _pulseOpacity;
+    extends ConsumerState<CreateAudioReportScreen> {
   final _descriptionController = TextEditingController();
 
   final LocationService _locationService = LocationService();
@@ -69,26 +65,55 @@ class _CreateAudioReportScreenState
     return 'Reporte enviado por audio';
   }
 
+  bool _isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  Color _surfaceLowest(BuildContext context) => _isDark(context)
+      ? AppColors.darkSurface
+      : AppColors.surfaceContainerLowest;
+
+  Color _surfaceLow(BuildContext context) => _isDark(context)
+      ? AppColors.darkSurfaceVariant
+      : AppColors.surfaceContainerLow;
+
+  Color _inputSurface(BuildContext context) =>
+      _isDark(context) ? AppColors.darkSurfaceVariant : AppColors.surface;
+
+  Color _softBorder(BuildContext context) =>
+      _isDark(context) ? AppColors.darkBorder : AppColors.border.withAlpha(150);
+
+  Color _textPrimary(BuildContext context) =>
+      _isDark(context) ? AppColors.darkTextPrimary : AppColors.textPrimary;
+
+  Color _textSecondary(BuildContext context) =>
+      _isDark(context) ? AppColors.darkTextSecondary : AppColors.textSecondary;
+
+  TextStyle _fieldTextStyle(BuildContext context) {
+    return Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: _textPrimary(context),
+          height: 1.45,
+        ) ??
+        TextStyle(color: _textPrimary(context));
+  }
+
+  TextStyle _hintTextStyle(BuildContext context) {
+    return Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: _isDark(context)
+              ? AppColors.darkTextSecondary.withAlpha(210)
+              : AppColors.textSecondary.withAlpha(210),
+          height: 1.45,
+        ) ??
+        TextStyle(color: _textSecondary(context));
+  }
+
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 900),
-      vsync: this,
-    );
-    _pulseScale = Tween<double>(begin: 1.0, end: 1.4).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-    _pulseOpacity = Tween<double>(
-      begin: 0.5,
-      end: 0.0,
-    ).animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeOut));
     _loadCurrentLocation();
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
     _descriptionController.dispose();
     _voiceService.dispose();
     _speechService.cancelListening();
@@ -142,7 +167,6 @@ class _CreateAudioReportScreenState
     try {
       await _voiceService.startRecording();
       if (!mounted) return;
-      _pulseController.repeat(reverse: true);
       setState(() {
         _isRecording = true;
         _audioPath = null;
@@ -161,8 +185,6 @@ class _CreateAudioReportScreenState
   Future<void> _stopRecording() async {
     try {
       final path = await _voiceService.stopRecording();
-      _pulseController.stop();
-      _pulseController.reset();
       if (path == null || path.isEmpty) {
         throw Exception('No se obtuvo el archivo de audio');
       }
@@ -179,6 +201,29 @@ class _CreateAudioReportScreenState
         SnackBar(content: Text('No se pudo detener la grabación: $e')),
       );
     }
+  }
+
+  Future<void> _toggleVoiceCapture() async {
+    if (_isRecording) {
+      await _stopRecording();
+      if (!mounted || _audioPath == null) return;
+      await Future<void>.delayed(const Duration(milliseconds: 350));
+      if (!mounted) return;
+      await _startDictation();
+      return;
+    }
+
+    if (_isDictating) {
+      await _stopDictation();
+      return;
+    }
+
+    if (_audioPath == null) {
+      await _startRecording();
+      return;
+    }
+
+    await _startDictation();
   }
 
   Future<void> _startDictation() async {
@@ -298,8 +343,6 @@ class _CreateAudioReportScreenState
   Future<void> _deleteAudio() async {
     if (_isRecording) {
       await _voiceService.cancelRecording();
-      _pulseController.stop();
-      _pulseController.reset();
     }
     if (_isDictating) {
       await _speechService.cancelListening();
@@ -354,7 +397,7 @@ class _CreateAudioReportScreenState
   Future<void> _showCategoryEditSheet() async {
     final selectedCategory = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: AppColors.surfaceContainerLowest,
+      backgroundColor: _surfaceLowest(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -371,16 +414,16 @@ class _CreateAudioReportScreenState
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceVariant,
+                    color: _softBorder(ctx),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                const Text(
+                Text(
                   'Cambiar categoría',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: _textPrimary(ctx),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -427,7 +470,7 @@ class _CreateAudioReportScreenState
   Future<void> _showSeverityEditSheet() async {
     final selectedSeverity = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: AppColors.surfaceContainerLowest,
+      backgroundColor: _surfaceLowest(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -444,16 +487,16 @@ class _CreateAudioReportScreenState
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceVariant,
+                    color: _softBorder(ctx),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                const Text(
+                Text(
                   'Cambiar severidad',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: _textPrimary(ctx),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -471,11 +514,11 @@ class _CreateAudioReportScreenState
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? color.withAlpha(30)
-                                  : AppColors.surfaceContainerLow,
+                                  : _surfaceLow(ctx),
                               borderRadius: BorderRadius.circular(12),
                               border: isSelected
                                   ? Border.all(color: color, width: 1.5)
-                                  : null,
+                                  : Border.all(color: _softBorder(ctx)),
                             ),
                             child: Text(
                               severity,
@@ -483,9 +526,7 @@ class _CreateAudioReportScreenState
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: isSelected
-                                    ? color
-                                    : AppColors.textSecondary,
+                                color: isSelected ? color : _textSecondary(ctx),
                               ),
                             ),
                           ),
@@ -556,7 +597,6 @@ class _CreateAudioReportScreenState
     setState(() => _isLoading = true);
     try {
       final description = _reportDescription;
-      final generatedTitle = '$_selectedCategory - $_selectedSeverity - Audio';
       debugPrint('audio local path antes de enviar: $_audioPath');
 
       // Run AI pipeline (non-blocking: failures are silently skipped)
@@ -602,14 +642,22 @@ class _CreateAudioReportScreenState
         // AI is optional — save report without AI fields on failure
       }
 
+      final finalCategory = _selectedCategory.trim().isEmpty
+          ? 'Otra'
+          : _selectedCategory.trim();
+      final finalSeverity = _selectedSeverity.trim().isEmpty
+          ? 'Moderado'
+          : _selectedSeverity.trim();
+      final generatedTitle = '$finalCategory - $finalSeverity - Audio';
+
       await ref
           .read(reportRepositoryProvider)
           .createReport(
             userId: userId,
             title: generatedTitle,
             description: description,
-            category: _selectedCategory,
-            severity: _selectedSeverity,
+            category: finalCategory,
+            severity: finalSeverity,
             locationLabel: _locationLabel,
             latitude: _currentPosition?.latitude,
             longitude: _currentPosition?.longitude,
@@ -628,7 +676,7 @@ class _CreateAudioReportScreenState
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Reporte de audio enviado')));
-      Navigator.pop(context);
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -641,38 +689,59 @@ class _CreateAudioReportScreenState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryTone = isDark ? AppColors.primaryLight : AppColors.primary;
     final canSubmit =
         !_isLoading && _audioPath != null && _currentPosition != null;
     final transcriptionText = _descriptionController.text.trim();
     final canAnalyze =
         transcriptionText.isNotEmpty && !_isAnalyzing && !_isDictating;
+    final voiceButtonText = _isRecording
+        ? 'Detener y transcribir'
+        : _isDictating
+        ? 'Detener transcripción'
+        : _audioPath == null
+        ? 'Grabar y transcribir reporte'
+        : 'Transcribir / dictar descripción';
+    final voiceStatusText = _isRecording
+        ? 'Grabando audio de evidencia...'
+        : _isDictating
+        ? 'Transcribiendo en vivo...'
+        : _audioPath != null
+        ? 'Audio capturado. Puedes editar la descripción o analizar con IA.'
+        : 'Toca el botón para grabar el audio real del reporte.';
+    final voiceButtonIcon = _isRecording
+        ? Icons.stop_rounded
+        : _isDictating
+        ? Icons.record_voice_over_rounded
+        : Icons.mic_rounded;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            color: AppColors.surfaceContainerLowest.withAlpha(200),
-            border: Border(
-              bottom: BorderSide(color: AppColors.surfaceContainerHighest),
-            ),
+            color: _surfaceLowest(context).withAlpha(isDark ? 240 : 220),
+            border: Border(bottom: BorderSide(color: _softBorder(context))),
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.primary),
+          icon: Icon(Icons.arrow_back_rounded, color: primaryTone),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Nuevo reporte por IA',
-          style: TextStyle(
-            color: AppColors.primary,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            letterSpacing: -0.5,
-          ),
+          style:
+              (theme.appBarTheme.titleTextStyle ?? theme.textTheme.titleLarge)
+                  ?.copyWith(
+                    color: primaryTone,
+                    fontSize: 20,
+                    letterSpacing: 0,
+                  ),
         ),
         centerTitle: true,
       ),
@@ -683,7 +752,7 @@ class _CreateAudioReportScreenState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // 1. Map Preview Card
-              VialCard(
+              AppCard(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
@@ -691,20 +760,21 @@ class _CreateAudioReportScreenState
                       height: 120,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerHigh,
+                        color: _surfaceLow(context),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _softBorder(context)),
                       ),
                       child: Center(
                         child: Container(
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withAlpha(50),
+                            color: primaryTone.withAlpha(isDark ? 36 : 50),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.location_on_rounded,
-                            color: AppColors.primary,
+                            color: primaryTone,
                             size: 28,
                           ),
                         ),
@@ -714,8 +784,9 @@ class _CreateAudioReportScreenState
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLow,
+                        color: _inputSurface(context),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _softBorder(context)),
                       ),
                       child: Row(
                         children: [
@@ -723,12 +794,12 @@ class _CreateAudioReportScreenState
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: AppColors.primaryContainer.withAlpha(50),
+                              color: primaryTone.withAlpha(isDark ? 32 : 50),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.location_on_rounded,
-                              color: AppColors.primary,
+                              color: primaryTone,
                               size: 20,
                             ),
                           ),
@@ -737,13 +808,13 @@ class _CreateAudioReportScreenState
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'UBICACIÓN ACTUAL',
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.textSecondary,
-                                    letterSpacing: 1.0,
+                                    color: _textSecondary(context),
+                                    letterSpacing: 0,
                                   ),
                                 ),
                                 _isGettingLocation
@@ -756,12 +827,13 @@ class _CreateAudioReportScreenState
                                       )
                                     : Text(
                                         _locationLabel ?? 'Buscando...',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w600,
-                                          color: AppColors.textPrimary,
+                                          color: _textPrimary(context),
                                         ),
                                         maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                               ],
                             ),
@@ -781,16 +853,17 @@ class _CreateAudioReportScreenState
               const SizedBox(height: 24),
 
               // 2. Type Selector
-              VialCard(
+              AppCard(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Categoría inicial',
-                      style: TextStyle(
+                      style: theme.textTheme.titleSmall?.copyWith(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
+                        color: _textPrimary(context),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -824,16 +897,17 @@ class _CreateAudioReportScreenState
               const SizedBox(height: 24),
 
               // 3. Severity selector
-              VialCard(
+              AppCard(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Severidad',
-                      style: TextStyle(
+                      style: theme.textTheme.titleSmall?.copyWith(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
+                        color: _textPrimary(context),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -855,12 +929,12 @@ class _CreateAudioReportScreenState
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? color.withAlpha(30)
-                                      : AppColors.surfaceContainerLow,
+                                      : _surfaceLow(context),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: isSelected
                                         ? color
-                                        : Colors.transparent,
+                                        : _softBorder(context),
                                     width: 1.5,
                                   ),
                                 ),
@@ -872,7 +946,7 @@ class _CreateAudioReportScreenState
                                     fontWeight: FontWeight.w600,
                                     color: isSelected
                                         ? color
-                                        : AppColors.textSecondary,
+                                        : _textSecondary(context),
                                   ),
                                 ),
                               ),
@@ -887,139 +961,69 @@ class _CreateAudioReportScreenState
               const SizedBox(height: 24),
 
               // 4. Microphone specific Area
-              VialCard(
+              AppCard(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    const Text(
+                    Text(
                       'Habla con el asistente de emergencia VialAI',
-                      style: TextStyle(
+                      style: theme.textTheme.titleSmall?.copyWith(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
+                        color: _textPrimary(context),
                       ),
                     ),
                     const SizedBox(height: 24),
-                    GestureDetector(
-                      onTap: _isRecording ? _stopRecording : _startRecording,
-                      child: SizedBox(
-                        width: 160,
-                        height: 160,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            if (_isRecording) ...[
-                              AnimatedBuilder(
-                                animation: _pulseController,
-                                builder: (context, _) => Transform.scale(
-                                  scale: _pulseScale.value,
-                                  child: Container(
-                                    width: 120,
-                                    height: 120,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.error.withAlpha(
-                                        (_pulseOpacity.value * 80).round(),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              AnimatedBuilder(
-                                animation: _pulseController,
-                                builder: (context, _) => Transform.scale(
-                                  scale: 1.0 + (_pulseScale.value - 1.0) * 0.5,
-                                  child: Container(
-                                    width: 120,
-                                    height: 120,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.error.withAlpha(
-                                        (_pulseOpacity.value * 130).round(),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              width: _isRecording ? 100 : 80,
-                              height: _isRecording ? 100 : 80,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: _isRecording
-                                    ? AppColors.error
-                                    : AppColors.primaryContainer.withAlpha(50),
-                                boxShadow: _isRecording
-                                    ? [
-                                        BoxShadow(
-                                          color: AppColors.error.withAlpha(100),
-                                          blurRadius: 20,
-                                          spreadRadius: 10,
-                                        ),
-                                      ]
-                                    : [],
-                              ),
-                              child: Icon(
-                                _isRecording
-                                    ? Icons.stop_rounded
-                                    : Icons.mic_rounded,
-                                size: 40,
-                                color: _isRecording
-                                    ? AppColors.onPrimary
-                                    : AppColors.primary,
-                              ),
-                            ),
-                          ],
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: primaryTone.withAlpha(isDark ? 34 : 24),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: primaryTone.withAlpha(isDark ? 130 : 90),
                         ),
+                      ),
+                      child: Icon(
+                        voiceButtonIcon,
+                        color: primaryTone,
+                        size: 34,
                       ),
                     ),
                     const SizedBox(height: 16),
+                    VialButton(
+                      onPressed: _toggleVoiceCapture,
+                      text: voiceButtonText,
+                      icon: Icon(voiceButtonIcon, size: 20),
+                      isSecondary: _audioPath != null && !_isRecording,
+                    ),
+                    const SizedBox(height: 12),
                     Text(
-                      _isRecording
-                          ? 'Grabando narración...'
-                          : (_audioPath != null
-                                ? 'Audio capturado.'
-                                : 'Presiona para grabar detalles por voz'),
-                      style: TextStyle(
+                      voiceStatusText,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: _isRecording
                             ? AppColors.error
-                            : AppColors.textSecondary,
+                            : _textSecondary(context),
                         fontWeight: FontWeight.w500,
+                        height: 1.35,
                       ),
                     ),
-                    if (_audioPath != null && !_isRecording) ...[
-                      const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        onPressed: _isDictating
-                            ? () => _stopDictation()
-                            : _startDictation,
-                        icon: Icon(
-                          _isDictating
-                              ? Icons.stop_rounded
-                              : Icons.record_voice_over_rounded,
-                        ),
-                        label: Text(
-                          _isDictating
-                              ? 'Detener dictado'
-                              : 'Transcribir audio / dictar descripción',
-                        ),
-                      ),
-                    ],
                     if (_isDictating && _transcription.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 12),
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.surfaceContainerLow,
+                            color: _surfaceLow(context),
                             borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: _softBorder(context)),
                           ),
                           child: Text(
                             _transcription,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.textSecondary,
+                              color: _textSecondary(context),
                               fontStyle: FontStyle.italic,
                             ),
                             textAlign: TextAlign.center,
@@ -1027,22 +1031,22 @@ class _CreateAudioReportScreenState
                         ),
                       ),
                     if (_isAnalyzing)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 12),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SizedBox(
+                            const SizedBox(
                               width: 14,
                               height: 14,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
                               'Analizando con IA...',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.textSecondary,
+                                color: _textSecondary(context),
                               ),
                             ),
                           ],
@@ -1072,19 +1076,20 @@ class _CreateAudioReportScreenState
               const SizedBox(height: 24),
 
               // 5. Description Input
-              VialCard(
+              AppCard(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             'Transcripción / descripción editable',
-                            style: TextStyle(
+                            style: theme.textTheme.titleSmall?.copyWith(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
+                              color: _textPrimary(context),
                             ),
                           ),
                         ),
@@ -1097,38 +1102,48 @@ class _CreateAudioReportScreenState
                             size: 16,
                           ),
                           label: const Text('Analizar con IA'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: primaryTone,
+                            disabledForegroundColor: _textSecondary(
+                              context,
+                            ).withAlpha(175),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 8,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     Container(
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLow,
+                        color: _surfaceLow(context),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _softBorder(context)),
                       ),
                       child: TextField(
                         controller: _descriptionController,
                         maxLines: 3,
+                        cursorColor: primaryTone,
                         onChanged: (value) {
                           setState(() {
                             _transcription = value;
                             _aiResult = null;
                           });
                         },
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText:
                               'Dicta un resumen del reporte o escribe la descripción manualmente...',
-                          hintStyle: TextStyle(
-                            color: AppColors.outline,
-                            fontSize: 14,
-                          ),
+                          hintStyle: _hintTextStyle(
+                            context,
+                          ).copyWith(fontSize: 14),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.all(16),
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.all(16),
                         ),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textPrimary,
-                        ),
+                        style: _fieldTextStyle(context).copyWith(fontSize: 14),
                       ),
                     ),
                   ],
@@ -1167,6 +1182,19 @@ class _CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryTone = isDark ? AppColors.primaryLight : AppColors.primary;
+    final idleColor = isDark
+        ? AppColors.darkSurfaceVariant
+        : AppColors.surfaceContainerLow;
+    final idleText = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
+    final borderColor = isDark
+        ? AppColors.darkBorder
+        : AppColors.border.withAlpha(140);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
@@ -1174,12 +1202,15 @@ class _CategoryChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.surfaceContainerLow,
+          color: isSelected ? primaryTone : idleColor,
           borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isSelected ? primaryTone.withAlpha(130) : borderColor,
+          ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withAlpha(50),
+                    color: primaryTone.withAlpha(isDark ? 36 : 50),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -1192,7 +1223,7 @@ class _CategoryChip extends StatelessWidget {
             Icon(
               icon,
               size: 18,
-              color: isSelected ? AppColors.onPrimary : AppColors.textSecondary,
+              color: isSelected ? AppColors.onPrimary : idleText,
             ),
             const SizedBox(width: 8),
             Text(
@@ -1200,9 +1231,7 @@ class _CategoryChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: isSelected
-                    ? AppColors.onPrimary
-                    : AppColors.textSecondary,
+                color: isSelected ? AppColors.onPrimary : idleText,
               ),
             ),
           ],
