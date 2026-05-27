@@ -64,7 +64,7 @@ class _HotspotsScreenState extends ConsumerState<HotspotsScreen> {
     final hotspotsAsync = ref.watch(hotspotsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: AppBackground(
         child: SafeArea(
           child: Column(
@@ -127,14 +127,17 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final mutedColor = isDark ? AppColors.darkTextSecondary : AppColors.muted;
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 20, 22, 12),
       child: Row(
         children: [
           GestureDetector(
             onTap: () => Navigator.of(context).maybePop(),
-            child: const Icon(Icons.arrow_back_ios_new_rounded,
-                size: 18, color: AppColors.text),
+            child: Icon(Icons.arrow_back_ios_new_rounded,
+                size: 18, color: textColor),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -144,14 +147,13 @@ class _Header extends StatelessWidget {
                 fontSize: 22,
                 fontWeight: FontWeight.w400,
                 fontStyle: FontStyle.italic,
-                color: AppColors.text,
+                color: textColor,
               ),
             ),
           ),
           GestureDetector(
             onTap: onRefresh,
-            child: const Icon(Icons.refresh_rounded,
-                size: 20, color: AppColors.muted),
+            child: Icon(Icons.refresh_rounded, size: 20, color: mutedColor),
           ),
         ],
       ),
@@ -168,6 +170,10 @@ class _InfoPanel extends StatelessWidget {
     final totalZones = zones.length;
     final topZone = zones.isNotEmpty ? zones.first : null;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final mutedColor = isDark ? AppColors.darkTextSecondary : AppColors.muted;
+
     return AppCard(
       radius: 20,
       padding: const EdgeInsets.all(16),
@@ -182,16 +188,13 @@ class _InfoPanel extends StatelessWidget {
                 style: GoogleFonts.dmSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.text,
+                  color: textColor,
                 ),
               ),
               const Spacer(),
               Text(
                 '$totalZones zonas activas',
-                style: GoogleFonts.dmSans(
-                  fontSize: 11,
-                  color: AppColors.muted,
-                ),
+                style: GoogleFonts.dmSans(fontSize: 11, color: mutedColor),
               ),
             ],
           ),
@@ -226,25 +229,30 @@ class _TopZoneRow extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Zona más activa · ${zone.count} reportes',
-                style: GoogleFonts.dmSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.text,
-                ),
-              ),
-              Text(
-                zone.topCategory,
-                style: GoogleFonts.dmSans(
-                  fontSize: 11,
-                  color: AppColors.muted,
-                ),
-              ),
-            ],
+          child: Builder(
+            builder: (context) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Zona más activa · ${zone.count} reportes',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? AppColors.darkTextPrimary : AppColors.text,
+                    ),
+                  ),
+                  Text(
+                    zone.topCategory,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 11,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.muted,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ],
@@ -286,10 +294,16 @@ class _ZoneBottomSheet extends StatelessWidget {
             ? AppColors.warning
             : AppColors.success;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sheetBg  = isDark ? AppColors.darkSurface        : AppColors.surfaceContainerLowest;
+    final handleBg = isDark ? AppColors.darkSurfaceVariant : AppColors.surfaceContainerHighest;
+    final textPrimary   = isDark ? AppColors.darkTextPrimary   : AppColors.textPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
       child: Column(
@@ -299,7 +313,7 @@ class _ZoneBottomSheet extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.surfaceContainerHighest,
+              color: handleBg,
               borderRadius: BorderRadius.circular(10),
             ),
           ),
@@ -323,17 +337,16 @@ class _ZoneBottomSheet extends StatelessWidget {
                   children: [
                     Text(
                       '${zone.count} reporte${zone.count == 1 ? '' : 's'} en esta zona',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Más frecuente: ${zone.topCategory}',
-                      style: const TextStyle(
-                          fontSize: 13, color: AppColors.textSecondary),
+                      style: TextStyle(fontSize: 13, color: textSecondary),
                     ),
                   ],
                 ),
@@ -427,7 +440,9 @@ class _LegendItem extends StatelessWidget {
           label,
           style: GoogleFonts.dmSans(
             fontSize: 10,
-            color: AppColors.muted,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkTextSecondary
+                : AppColors.muted,
           ),
         ),
       ],
