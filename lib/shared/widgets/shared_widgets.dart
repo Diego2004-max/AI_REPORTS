@@ -216,7 +216,7 @@ class StatPill extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
         onTap: onTap,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
               width: 6,
@@ -230,6 +230,7 @@ class StatPill extends StatelessWidget {
                 fontSize: 42, fontWeight: FontWeight.w400,
                 fontStyle: FontStyle.italic, color: textColor, height: 1.0,
               ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 6),
             Text(
@@ -238,6 +239,7 @@ class StatPill extends StatelessWidget {
                 fontSize: 10, fontWeight: FontWeight.w300,
                 color: mutedColor, letterSpacing: 0.8,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),

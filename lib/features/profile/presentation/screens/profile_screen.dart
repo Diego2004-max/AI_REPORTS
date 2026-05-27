@@ -19,12 +19,13 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionProvider);
     final statsAsync = ref.watch(userReportStatsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final initials = (session.userName?.isNotEmpty ?? false)
         ? session.userName!.substring(0, 1).toUpperCase()
         : 'U';
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: AppBackground(
         child: SafeArea(
           child: ListView(
@@ -40,7 +41,7 @@ class ProfileScreen extends ConsumerWidget {
                     fontSize: 24,
                     fontWeight: FontWeight.w400,
                     fontStyle: FontStyle.italic,
-                    color: AppColors.text,
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.text,
                   ),
                 ),
               ),
