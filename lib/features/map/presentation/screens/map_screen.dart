@@ -293,6 +293,122 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
   }
 
+  // Offset duplicate coordinates so stacked markers are both tappable.
+  static List<LatLng> _spreadPositions(List<ReportModel> reports) {
+    const double step = 0.00008; // ~9 m
+    final seen = <String, int>{};
+    return reports.map((r) {
+      final key = '${r.latitude!.toStringAsFixed(5)},${r.longitude!.toStringAsFixed(5)}';
+      final count = seen[key] ?? 0;
+      seen[key] = count + 1;
+      if (count == 0) return LatLng(r.latitude!, r.longitude!);
+      // Spiral offset for duplicates: N, E, S, W, NE, …
+      final offsets = [
+        const Offset(0, 1), const Offset(1, 0), const Offset(0, -1),
+        const Offset(-1, 0), const Offset(1, 1), const Offset(-1, 1),
+      ];
+      final o = offsets[count % offsets.length];
+      return LatLng(r.latitude! + o.dy * step, r.longitude! + o.dx * step);
+    }).toList();
+  }
+
+  void _showReportSheet(BuildContext context, ReportModel report) {
+    final severity = _resolveReportSeverity(report);
+    final color = _severityColor(severity);
+    final label = _severityLabel(severity);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36, height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkBorder : AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: color.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(width: 8, height: 8,
+                          decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                      const SizedBox(width: 6),
+                      Text(label,
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    report.category,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              report.title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+              ),
+            ),
+            if (report.locationLabel != null) ...[
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Icon(Icons.location_on_outlined, size: 14,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      report.locationLabel!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final reportsAsync = ref.watch(allReportsProvider);
@@ -307,17 +423,18 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               .where((r) => r.latitude != null && r.longitude != null)
               .toList();
 
-          final markers = reportsWithCoords.map((report) {
-            final severity = _resolveReportSeverity(report);
+          final positions = _spreadPositions(reportsWithCoords);
+
+          final markers = reportsWithCoords.asMap().entries.map((entry) {
+            final report = entry.value;
+            final position = positions[entry.key];
 
             return Marker(
               markerId: MarkerId(report.id),
-              position: LatLng(report.latitude!, report.longitude!),
+              position: position,
               icon: _markerForReport(report),
-              infoWindow: InfoWindow(
-                title: report.title,
-                snippet: '${report.category} · ${_severityLabel(severity)}',
-              ),
+              consumeTapEvents: true,
+              onTap: () => _showReportSheet(context, report),
             );
           }).toSet();
 
