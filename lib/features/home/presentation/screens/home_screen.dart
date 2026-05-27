@@ -27,12 +27,14 @@ class HomeScreen extends ConsumerWidget {
     final greeting = hour < 12
         ? 'buenos días'
         : hour < 18
-            ? 'buenas tardes'
-            : 'buenas noches';
+        ? 'buenas tardes'
+        : 'buenas noches';
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final greetingColor = isDark ? AppColors.darkTextSecondary : AppColors.muted;
+    final greetingColor = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.muted;
     final nameColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
     final errorColor = isDark ? AppColors.darkTextSecondary : AppColors.muted;
 
@@ -69,7 +71,7 @@ class HomeScreen extends ConsumerWidget {
                           children: [
                             Text(
                               greeting,
-                              style: GoogleFonts.dmSans(
+                              style: GoogleFonts.playfairDisplay(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w300,
                                 color: greetingColor,
@@ -97,7 +99,9 @@ class HomeScreen extends ConsumerWidget {
                         child: GestureDetector(
                           onTap: () => context.push(AppRoutes.notifications),
                           child: UserAvatar(
-                            initials: firstName.isNotEmpty ? firstName[0].toUpperCase() : 'U',
+                            initials: firstName.isNotEmpty
+                                ? firstName[0].toUpperCase()
+                                : 'U',
                             size: 38,
                           ),
                         ),
@@ -118,39 +122,17 @@ class HomeScreen extends ConsumerWidget {
                     child: statsAsync.when(
                       // FIX: show placeholder containers matching StatPill layout during load
                       loading: () {
-                        final placeholderColor = isDark ? AppColors.darkSurface : AppColors.bg2;
+                        final placeholderColor = isDark
+                            ? AppColors.darkSurface
+                            : AppColors.bg2;
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    height: 120,
-                                    decoration: BoxDecoration(
-                                      color: placeholderColor,
-                                      borderRadius: BorderRadius.circular(28),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Container(
-                                    height: 120,
-                                    decoration: BoxDecoration(
-                                      color: placeholderColor,
-                                      borderRadius: BorderRadius.circular(28),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
                             Container(
-                              height: 30,
+                              height: 120,
                               decoration: BoxDecoration(
                                 color: placeholderColor,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(28),
                               ),
                             ),
                           ],
@@ -161,12 +143,16 @@ class HomeScreen extends ConsumerWidget {
                         children: [
                           Text(
                             'No se pudieron cargar tus estadísticas. Intenta de nuevo.',
-                            style: TextStyle(color: errorColor, fontSize: 13),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: errorColor,
+                              fontSize: 13,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 8),
                           TextButton.icon(
-                            onPressed: () => ref.invalidate(userReportStatsProvider),
+                            onPressed: () =>
+                                ref.invalidate(userReportStatsProvider),
                             icon: const Icon(Icons.refresh_rounded, size: 16),
                             label: const Text('Reintentar'),
                           ),
@@ -177,7 +163,6 @@ class HomeScreen extends ConsumerWidget {
                         children: [
                           Row(
                             children: [
-                              // FIX: onTap en "Total" navega a todos los reportes
                               StatPill(
                                 value: '${stats.total}',
                                 label: 'Total',
@@ -189,25 +174,17 @@ class HomeScreen extends ConsumerWidget {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              // FIX: onTap en "Atendidos" navega con filtro status == atendido
-                              StatPill(
-                                value: '${stats.attended}',
-                                label: 'Atendidos',
-                                dotColor: AppColors.success,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const ReportListScreen(
-                                      initialFilter: 'Atendidos',
-                                    ),
-                                  ),
-                                ),
-                              ),
                             ],
                           ),
                           const SizedBox(height: 14),
-                          ResolutionBar(total: stats.total, resolved: stats.attended),
+                          Text(
+                            'Reportes registrados',
+                            style: GoogleFonts.playfairDisplay(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                              color: errorColor,
+                            ),
+                          ),
                           const SizedBox(height: 28),
                           const SectionHeader(title: 'Recientes'),
                           recentAsync.when(
@@ -218,14 +195,18 @@ class HomeScreen extends ConsumerWidget {
                             ),
                             error: (e, _) => Text(
                               e.toString(),
-                              style: TextStyle(color: errorColor, fontSize: 13),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: errorColor,
+                                fontSize: 13,
+                              ),
                             ),
                             data: (reports) {
                               if (reports.isEmpty) {
                                 return const EmptyState(
                                   icon: Icons.article_outlined,
                                   title: 'Sin reportes aún',
-                                  subtitle: 'Crea tu primer reporte para verlo aquí.',
+                                  subtitle:
+                                      'Crea tu primer reporte para verlo aquí.',
                                 );
                               }
                               return Column(
@@ -234,14 +215,19 @@ class HomeScreen extends ConsumerWidget {
                                       (report) => ReportCard(
                                         title: report.title,
                                         description: report.description,
-                                        status: ReportStatusExt.fromString(report.status),
-                                        date: '${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
+                                        status: ReportStatusExt.fromString(
+                                          report.status,
+                                        ),
+                                        date:
+                                            '${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
                                         category: report.category,
                                         heroTag: 'status_${report.id}',
                                         onTap: () => Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (_) => ReportDetailScreen(report: report),
+                                            builder: (_) => ReportDetailScreen(
+                                              report: report,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -263,8 +249,8 @@ class HomeScreen extends ConsumerWidget {
                                   onTap: () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (_) =>
-                                            const StatisticsScreen()),
+                                      builder: (_) => const StatisticsScreen(),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -277,8 +263,8 @@ class HomeScreen extends ConsumerWidget {
                                   onTap: () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (_) =>
-                                            const HotspotsScreen()),
+                                      builder: (_) => const HotspotsScreen(),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -335,7 +321,7 @@ class _AnalyticsShortcut extends StatelessWidget {
           Flexible(
             child: Text(
               label,
-              style: GoogleFonts.dmSans(
+              style: GoogleFonts.playfairDisplay(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: textColor,

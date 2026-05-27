@@ -32,7 +32,9 @@ class ThemeScreen extends ConsumerWidget {
               title: 'Sistema',
               subtitle: 'Sigue la configuración del dispositivo',
               icon: Icons.brightness_auto_rounded,
-              onTap: () => ref.read(themeProvider.notifier).setThemeMode(ThemeMode.system),
+              onTap: () => ref
+                  .read(themeProvider.notifier)
+                  .setThemeMode(ThemeMode.system),
             ),
             const SizedBox(height: 12),
             _ThemeOption(
@@ -41,7 +43,9 @@ class ThemeScreen extends ConsumerWidget {
               title: 'Claro',
               subtitle: 'Interfaz con fondo blanco/gris suave',
               icon: Icons.light_mode_rounded,
-              onTap: () => ref.read(themeProvider.notifier).setThemeMode(ThemeMode.light),
+              onTap: () => ref
+                  .read(themeProvider.notifier)
+                  .setThemeMode(ThemeMode.light),
             ),
             const SizedBox(height: 12),
             _ThemeOption(
@@ -50,7 +54,8 @@ class ThemeScreen extends ConsumerWidget {
               title: 'Oscuro',
               subtitle: 'Interfaz con fondo azul oscuro',
               icon: Icons.dark_mode_rounded,
-              onTap: () => ref.read(themeProvider.notifier).setThemeMode(ThemeMode.dark),
+              onTap: () =>
+                  ref.read(themeProvider.notifier).setThemeMode(ThemeMode.dark),
             ),
             const SizedBox(height: 32),
             _PreviewCard(isDark: isDark),
@@ -98,10 +103,24 @@ class _ThemeOption extends StatelessWidget {
             width: 1.5,
           ),
           boxShadow: isDark
-              ? [const BoxShadow(color: Color(0x28000000), blurRadius: 10, offset: Offset(0, 3))]
+              ? [
+                  const BoxShadow(
+                    color: Color(0x28000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 3),
+                  ),
+                ]
               : [
-                  const BoxShadow(color: Color(0x8CAEB7CE), blurRadius: 14, offset: Offset(5, 5)),
-                  const BoxShadow(color: Color(0xE6FFFFFF), blurRadius: 14, offset: Offset(-5, -5)),
+                  const BoxShadow(
+                    color: Color(0x8CAEB7CE),
+                    blurRadius: 14,
+                    offset: Offset(5, 5),
+                  ),
+                  const BoxShadow(
+                    color: Color(0xE6FFFFFF),
+                    blurRadius: 14,
+                    offset: Offset(-5, -5),
+                  ),
                 ],
         ),
         child: Row(
@@ -128,7 +147,7 @@ class _ThemeOption extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.dmSans(
+                    style: GoogleFonts.playfairDisplay(
                       fontSize: 14,
                       fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                       color: selected ? AppColors.accent : textColor,
@@ -137,7 +156,7 @@ class _ThemeOption extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: GoogleFonts.dmSans(
+                    style: GoogleFonts.playfairDisplay(
                       fontSize: 11,
                       fontWeight: FontWeight.w300,
                       color: mutedColor,
@@ -153,7 +172,9 @@ class _ThemeOption extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: selected ? AppColors.accent : (isDark ? AppColors.darkBorder : AppColors.border),
+                  color: selected
+                      ? AppColors.accent
+                      : (isDark ? AppColors.darkBorder : AppColors.border),
                   width: 1.5,
                 ),
                 color: selected ? AppColors.accent : Colors.transparent,
@@ -187,17 +208,21 @@ class _PreviewCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 8, height: 8,
+                width: 8,
+                height: 8,
                 decoration: const BoxDecoration(
-                  color: AppColors.accent, shape: BoxShape.circle,
+                  color: AppColors.accent,
+                  shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 8),
               Text(
                 'VISTA PREVIA',
-                style: GoogleFonts.dmSans(
-                  fontSize: 10, fontWeight: FontWeight.w300,
-                  color: mutedColor, letterSpacing: 0.8,
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w300,
+                  color: mutedColor,
+                  letterSpacing: 0.8,
                 ),
               ),
             ],
@@ -206,16 +231,20 @@ class _PreviewCard extends StatelessWidget {
           Text(
             isDark ? 'Modo oscuro activo' : 'Modo claro activo',
             style: GoogleFonts.playfairDisplay(
-              fontSize: 18, fontWeight: FontWeight.w400,
-              fontStyle: FontStyle.italic, color: textColor,
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+              fontStyle: FontStyle.italic,
+              color: textColor,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'El cambio se aplica inmediatamente y se guarda para tu próxima sesión.',
-            style: GoogleFonts.dmSans(
-              fontSize: 12, fontWeight: FontWeight.w300,
-              color: mutedColor, height: 1.5,
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 12,
+              fontWeight: FontWeight.w300,
+              color: mutedColor,
+              height: 1.5,
             ),
           ),
         ],

@@ -10,11 +10,9 @@ import 'package:reportes_ai/state/report_provider.dart';
 import 'report_detail_screen.dart';
 
 class ReportListScreen extends ConsumerStatefulWidget {
-  // FIX: accept optional initial category and status filter for navigation from external screens
   const ReportListScreen({super.key, this.initialCategory, this.initialFilter});
 
   final String? initialCategory;
-  // initialFilter matches the chip labels: 'Todos' | 'Activos' | 'Atendidos'
   final String? initialFilter;
 
   @override
@@ -25,10 +23,9 @@ class _ReportListScreenState extends ConsumerState<ReportListScreen> {
   final _searchCtrl = TextEditingController();
   String _selectedFilter = 'Todos';
   String _searchQuery = '';
-  // FIX: category filter populated from constructor for navigation from category tiles
   String? _categoryFilter;
 
-  static const List<String> _filters = ['Todos', 'Activos', 'Atendidos'];
+  static const List<String> _filters = ['Todos'];
 
   @override
   void initState() {
@@ -38,7 +35,6 @@ class _ReportListScreenState extends ConsumerState<ReportListScreen> {
       _searchQuery = _categoryFilter!;
       _searchCtrl.text = _categoryFilter!;
     }
-    // FIX: apply status filter from constructor (e.g. 'Atendidos' from StatPill tap)
     if (widget.initialFilter != null &&
         _filters.contains(widget.initialFilter)) {
       _selectedFilter = widget.initialFilter!;
@@ -55,25 +51,16 @@ class _ReportListScreenState extends ConsumerState<ReportListScreen> {
 
   List<ReportModel> _applyFilters(List<ReportModel> reports) {
     final filtered = reports.where((report) {
-      bool matchesFilter = true;
-      if (_selectedFilter != 'Todos') {
-        final status = _toStatus(report.status);
-        matchesFilter = switch (_selectedFilter) {
-          'Activos'   => status == ReportStatus.active,
-          'Atendidos' => status == ReportStatus.atendido,
-          _           => true,
-        };
-      }
       final query = _searchQuery.toLowerCase().trim();
-      final matchesSearch = query.isEmpty ||
+      final matchesSearch =
+          query.isEmpty ||
           report.title.toLowerCase().contains(query) ||
           report.category.toLowerCase().contains(query) ||
           report.description.toLowerCase().contains(query) ||
           (report.locationLabel?.toLowerCase().contains(query) ?? false);
-      return matchesFilter && matchesSearch;
+      return matchesSearch;
     }).toList();
 
-    // FIX: sort so attended reports sink to the bottom; within each group, newest first
     filtered.sort((a, b) {
       final aA = a.status.toLowerCase().contains('atendido');
       final bA = b.status.toLowerCase().contains('atendido');
@@ -140,7 +127,8 @@ class _ReportListScreenState extends ConsumerState<ReportListScreen> {
               const SizedBox(height: 16),
               Expanded(
                 child: reportsAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (e, _) => EmptyState(
                     icon: Icons.error_outline,
                     title: 'Error',
@@ -159,21 +147,26 @@ class _ReportListScreenState extends ConsumerState<ReportListScreen> {
                       color: AppColors.accent,
                       onRefresh: () async => refreshReports(ref),
                       child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 22,
+                          vertical: 8,
+                        ),
                         itemCount: filtered.length,
                         itemBuilder: (_, i) {
                           final report = filtered[i];
                           return ReportCard(
                             title: report.title,
-                            description: report.locationLabel ?? report.description,
+                            description:
+                                report.locationLabel ?? report.description,
                             status: _toStatus(report.status),
-                            date: '${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
+                            date:
+                                '${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
                             category: report.category,
-                            heroTag: 'status_${report.id}',
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => ReportDetailScreen(report: report),
+                                builder: (_) =>
+                                    ReportDetailScreen(report: report),
                               ),
                             ),
                           );

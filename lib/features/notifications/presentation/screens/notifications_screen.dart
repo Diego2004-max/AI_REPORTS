@@ -13,8 +13,16 @@ class NotificationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
+    final faintColor = isDark ? AppColors.darkTextDisabled : AppColors.faint;
+
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: AppBackground(
         child: SafeArea(
           child: Column(
@@ -26,10 +34,10 @@ class NotificationsScreen extends ConsumerWidget {
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.of(context).maybePop(),
-                      child: const Icon(
+                      child: Icon(
                         Icons.arrow_back_ios_new_rounded,
                         size: 18,
-                        color: AppColors.text,
+                        color: textPrimary,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -40,7 +48,7 @@ class NotificationsScreen extends ConsumerWidget {
                           fontSize: 22,
                           fontWeight: FontWeight.w400,
                           fontStyle: FontStyle.italic,
-                          color: AppColors.text,
+                          color: textPrimary,
                         ),
                       ),
                     ),
@@ -49,10 +57,10 @@ class NotificationsScreen extends ConsumerWidget {
                       message: 'Disponible pronto',
                       child: Text(
                         'Leer todo',
-                        style: GoogleFonts.dmSans(
+                        style: GoogleFonts.playfairDisplay(
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
-                          color: AppColors.faint,
+                          color: faintColor,
                         ),
                       ),
                     ),
@@ -80,18 +88,18 @@ class NotificationsScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.info_outline_rounded,
                           size: 12,
-                          color: AppColors.faint,
+                          color: faintColor,
                         ),
                         const SizedBox(width: 5),
                         Text(
                           'Predicciones de IA · No reemplazan a autoridades',
-                          style: GoogleFonts.dmSans(
+                          style: GoogleFonts.playfairDisplay(
                             fontSize: 10,
                             fontWeight: FontWeight.w300,
-                            color: AppColors.faint,
+                            color: textSecondary,
                           ),
                         ),
                       ],
@@ -114,6 +122,11 @@ class _RiskSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final labelColor = isDark ? AppColors.darkTextDisabled : AppColors.faint;
+    final bodyColor = isDark ? AppColors.darkTextSecondary : AppColors.muted;
+
     final analyticsAsync = analyticsRef.watch(globalAnalyticsProvider);
     return analyticsAsync.when(
       loading: () => const SizedBox.shrink(),
@@ -139,10 +152,10 @@ class _RiskSummaryCard extends StatelessWidget {
             children: [
               Text(
                 'RIESGO EN TU ZONA',
-                style: GoogleFonts.dmSans(
+                style: GoogleFonts.playfairDisplay(
                   fontSize: 10,
                   fontWeight: FontWeight.w300,
-                  color: AppColors.faint,
+                  color: labelColor,
                   letterSpacing: 0.8,
                 ),
               ),
@@ -160,28 +173,24 @@ class _RiskSummaryCard extends StatelessWidget {
               Text(
                 'Se registraron $total reportes en la zona. '
                 'El tipo de incidente más frecuente es "$topCategory".',
-                style: GoogleFonts.dmSans(
+                style: GoogleFonts.playfairDisplay(
                   fontSize: 12,
                   fontWeight: FontWeight.w300,
-                  color: AppColors.muted,
+                  color: bodyColor,
                   height: 1.55,
                 ),
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(
-                    Icons.update_rounded,
-                    size: 12,
-                    color: AppColors.faint,
-                  ),
+                  Icon(Icons.update_rounded, size: 12, color: labelColor),
                   const SizedBox(width: 5),
                   Text(
                     'Basado en datos recientes',
-                    style: GoogleFonts.dmSans(
+                    style: GoogleFonts.playfairDisplay(
                       fontSize: 11,
                       fontWeight: FontWeight.w300,
-                      color: AppColors.faint,
+                      color: labelColor,
                     ),
                   ),
                 ],
@@ -258,6 +267,13 @@ class _PredictionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.muted;
+
     return AppCard(
       radius: 22,
       padding: const EdgeInsets.fromLTRB(0, 14, 14, 14),
@@ -283,10 +299,10 @@ class _PredictionTile extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: GoogleFonts.dmSans(
+                      style: GoogleFonts.playfairDisplay(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
-                        color: AppColors.text,
+                        color: textPrimary,
                       ),
                     ),
                     Container(
@@ -300,7 +316,7 @@ class _PredictionTile extends StatelessWidget {
                       ),
                       child: Text(
                         level,
-                        style: GoogleFonts.dmSans(
+                        style: GoogleFonts.playfairDisplay(
                           fontSize: 10,
                           fontWeight: FontWeight.w400,
                           color: levelColor,
@@ -312,16 +328,16 @@ class _PredictionTile extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '$count reportes registrados',
-                  style: GoogleFonts.dmSans(
+                  style: GoogleFonts.playfairDisplay(
                     fontSize: 11,
                     fontWeight: FontWeight.w300,
-                    color: AppColors.muted,
+                    color: textSecondary,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'Basado en datos históricos',
-                  style: GoogleFonts.dmSans(
+                  style: GoogleFonts.playfairDisplay(
                     fontSize: 10,
                     fontWeight: FontWeight.w300,
                     color: AppColors.accent,

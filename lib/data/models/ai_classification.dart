@@ -23,49 +23,36 @@ class AiClassification {
     this.rawSeverity = 'media',
   });
 
-  /// Parses a raw JSON string from the old Claude Haiku format (backward compat).
+  /// Parses a raw JSON string from the old Claude Haiku format.
   factory AiClassification.fromJson(String raw) {
     final cleaned = raw
         .replaceAll(RegExp(r'```json\s*'), '')
         .replaceAll(RegExp(r'```\s*'), '')
         .trim();
     final map = jsonDecode(cleaned) as Map<String, dynamic>;
+    final rawCategory = (map['category'] as String?)?.trim() ?? '';
+    final rawSeverity = (map['severity'] as String?)?.trim() ?? '';
+
     return AiClassification(
-      suggestedCategory: map['category'] as String? ?? 'Accidente',
-      suggestedSeverity: map['severity'] as String? ?? 'Moderado',
+      suggestedCategory: _normalizeCategory(rawCategory),
+      suggestedSeverity: _normalizeSeverity(rawSeverity),
       confidence: (map['confidence'] as num?)?.toDouble() ?? 0.5,
       entities: (map['entities'] as List?)?.cast<String>() ?? [],
       priorityScore: (map['priority_score'] as num?)?.toInt() ?? 50,
+      rawAiCategory: rawCategory,
+      rawSeverity: rawSeverity.isEmpty ? 'media' : rawSeverity,
     );
   }
 
   /// Maps an Edge Function `classify` response to the UI model.
   factory AiClassification.fromEdgeFunction(Map<String, dynamic> data) {
-    const categoryMap = <String, String>{
-      'Accidente de tránsito': 'Accidente',
-      'Infraestructura': 'Derrumbe',
-      'Seguridad': 'Semáforo dañado',
-      'Emergencia climática': 'Vía bloqueada',
-      'Servicios públicos': 'Vía bloqueada',
-    };
-    const severityMap = <String, String>{
-      'baja': 'Leve',
-      'media': 'Moderado',
-      'grave': 'Crítico',
-      'alta': 'Crítico',
-      'critica': 'Crítico',
-      'crítico': 'Crítico',
-      'crítica': 'Crítico',
-    };
-
-    final rawCat = data['category'] as String? ?? 'Accidente de tránsito';
-    final rawSev = data['severity'] as String? ?? 'media';
-    final normalizedSeverity = rawSev.toLowerCase().trim();
+    final rawCat = (data['category'] as String?)?.trim() ?? '';
+    final rawSev = (data['severity'] as String?)?.trim() ?? 'media';
     final priority = (data['priority_score'] as num?)?.toDouble() ?? 0;
 
     return AiClassification(
-      suggestedCategory: categoryMap[rawCat] ?? rawCat,
-      suggestedSeverity: severityMap[normalizedSeverity] ?? 'Moderado',
+      suggestedCategory: _normalizeCategory(rawCat),
+      suggestedSeverity: _normalizeSeverity(rawSev),
       confidence: (data['confidence'] as num?)?.toDouble() ?? 0.7,
       entities: const [],
       priorityScore: priority <= 1
@@ -98,5 +85,73 @@ class AiClassification {
     if (confidence >= 0.85) return 'Alta';
     if (confidence >= 0.6) return 'Media';
     return 'Baja';
+  }
+
+  static String _normalizeCategory(String rawCategory) {
+    final raw = rawCategory.trim();
+    if (raw.isEmpty) return 'Otra';
+
+    final value = _fold(raw);
+
+    if (value.contains('derrumbe') ||
+        value.contains('deslizamiento') ||
+        value.contains('talud') ||
+        value.contains('infraestructura')) {
+      return 'Derrumbe';
+    }
+
+    if (value.contains('semaforo') ||
+        value.contains('senalizacion') ||
+        value.contains('seguridad vial')) {
+      return 'Semáforo dañado';
+    }
+
+    if (value.contains('via bloqueada') ||
+        value.contains('via cerrada') ||
+        value.contains('bloqueo') ||
+        value.contains('obstruccion') ||
+        value.contains('cierre') ||
+        value.contains('emergencia climatica') ||
+        value.contains('servicios publicos')) {
+      return 'Vía bloqueada';
+    }
+
+    if (value.contains('accidente') ||
+        value.contains('choque') ||
+        value.contains('colision') ||
+        value.contains('transito')) {
+      return 'Accidente';
+    }
+
+    return raw;
+  }
+
+  static String _normalizeSeverity(String rawSeverity) {
+    final value = _fold(rawSeverity.trim());
+    if (value == 'baja' || value == 'leve') return 'Leve';
+    if (value == 'alta' ||
+        value == 'grave' ||
+        value == 'critica' ||
+        value == 'critico') {
+      return 'Crítico';
+    }
+    return 'Moderado';
+  }
+
+  static String _fold(String value) {
+    return value
+        .toLowerCase()
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ñ', 'n')
+        .replaceAll('ã¡', 'a')
+        .replaceAll('ã©', 'e')
+        .replaceAll('ã­', 'i')
+        .replaceAll('ã³', 'o')
+        .replaceAll('ãº', 'u')
+        .replaceAll('ã±', 'n');
   }
 }

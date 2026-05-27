@@ -10,7 +10,6 @@ import 'package:reportes_ai/data/models/report_model.dart';
 import 'package:reportes_ai/shared/widgets/app_card.dart';
 import 'package:reportes_ai/shared/widgets/custom_app_bar.dart';
 import 'package:reportes_ai/shared/widgets/report_audio_player.dart';
-import 'package:reportes_ai/shared/widgets/status_badge.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
 
@@ -116,6 +115,11 @@ class ReportDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
     final session = ref.watch(sessionProvider);
     final imagePath = report.imagePaths
         .where((path) => path.trim().isNotEmpty)
@@ -144,18 +148,8 @@ class ReportDetailScreen extends ConsumerWidget {
                           report.title,
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w700,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Hero(
-                        tag: 'status_${report.id}',
-                        child: Material(
-                          type: MaterialType.transparency,
-                          child: StatusBadge(
-                            status: report.status,
-                            showIcon: true,
+                            letterSpacing: 0,
+                            color: textPrimary,
                           ),
                         ),
                       ),
@@ -185,9 +179,7 @@ class ReportDetailScreen extends ConsumerWidget {
                     report.description,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       height: 1.55,
-                      color: theme.brightness == Brightness.dark
-                          ? AppColors.darkTextPrimary
-                          : AppColors.text,
+                      color: textPrimary,
                     ),
                   ),
                 ],
@@ -203,19 +195,17 @@ class ReportDetailScreen extends ConsumerWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.timer_outlined,
                         size: 18,
-                        color: AppColors.textSecondary,
+                        color: textSecondary,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _buildExpirationLabel(),
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.brightness == Brightness.dark
-                                ? AppColors.darkTextPrimary
-                                : AppColors.text,
+                            color: textPrimary,
                           ),
                         ),
                       ),
@@ -228,9 +218,7 @@ class ReportDetailScreen extends ConsumerWidget {
                       child: Text(
                         'Fecha límite: ${_formatDate(report.expiresAt!)}',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.brightness == Brightness.dark
-                              ? AppColors.darkTextSecondary
-                              : AppColors.muted,
+                          color: textSecondary,
                         ),
                       ),
                     ),
@@ -293,14 +281,20 @@ class ReportDetailScreen extends ConsumerWidget {
             ],
             const SizedBox(height: AppSpacing.lg),
             AppCard(
-              color: canDelete ? AppColors.primary.withAlpha(8) : null,
+              color: canDelete
+                  ? (isDark
+                        ? AppColors.primaryLight.withAlpha(18)
+                        : AppColors.primary.withAlpha(8))
+                  : null,
               child: Row(
                 children: [
                   Icon(
                     canDelete
                         ? Icons.verified_user_outlined
                         : Icons.lock_outline,
-                    color: canDelete ? AppColors.primary : AppColors.outline,
+                    color: canDelete
+                        ? (isDark ? AppColors.primaryLight : AppColors.primary)
+                        : textSecondary,
                     size: 20,
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -310,9 +304,7 @@ class ReportDetailScreen extends ConsumerWidget {
                           ? 'Tú creaste este reporte. Puedes eliminarlo antes de su vencimiento.'
                           : 'Solo el usuario que creó este reporte puede eliminarlo.',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.brightness == Brightness.dark
-                            ? AppColors.darkTextPrimary
-                            : AppColors.text,
+                        color: textPrimary,
                       ),
                     ),
                   ),
@@ -325,6 +317,9 @@ class ReportDetailScreen extends ConsumerWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.error,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: isDark
+                      ? AppColors.darkSurfaceVariant
+                      : AppColors.surfaceContainerHigh,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 18,
                     vertical: 14,
@@ -353,13 +348,15 @@ class _CardLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Text(
       text,
-      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-        color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-        letterSpacing: 0.3,
+      style: theme.appBarTheme.titleTextStyle?.copyWith(
+        fontSize: 18,
+        color: isDark ? AppColors.darkTextPrimary : AppColors.text,
+        letterSpacing: 0,
       ),
     );
   }
@@ -386,7 +383,11 @@ class _InfoRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: TextStyle(fontSize: 14, color: color, height: 1.4),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontSize: 14,
+              color: color,
+              height: 1.4,
+            ),
           ),
         ),
       ],
