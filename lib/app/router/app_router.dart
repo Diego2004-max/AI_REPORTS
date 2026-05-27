@@ -11,7 +11,6 @@ abstract final class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String app = '/app';
-  // FIX: named route for notifications screen (Fix 9)
   static const String notifications = '/notifications';
 }
 
@@ -37,7 +36,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'app',
         builder: (context, state) => const MainScreen(),
       ),
-      // FIX: notifications is now a named route navigable via context.push (Fix 9)
       GoRoute(
         path: AppRoutes.notifications,
         name: 'notifications',

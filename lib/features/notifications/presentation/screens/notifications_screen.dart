@@ -50,7 +50,6 @@ class NotificationsScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    // FIX: "Leer todo" deshabilitado (gris + tooltip) hasta integrar notificaciones en tiempo real
                     Tooltip(
                       message: 'Disponible pronto',
                       child: Text(
@@ -70,8 +69,6 @@ class NotificationsScreen extends ConsumerWidget {
                 child: ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 22),
                   children: [
-                    // FIX: eliminados los 4 NotifTile con datos inventados
-                    // REQUISITO PENDIENTE: módulo de notificaciones en tiempo real — agente separado
                     const EmptyState(
                       icon: Icons.notifications_none_rounded,
                       title: 'Sin notificaciones',
@@ -224,7 +221,6 @@ class _CategoryPredictions extends StatelessWidget {
         return Column(
           children: [
             for (int i = 0; i < cats.length; i++) ...[
-              // FIX: onTap navega a ReportListScreen con la categoría como filtro preseleccionado
               _PredictionTile(
                 title: cats[i].category,
                 level: _riskLabels[i % _riskLabels.length],
@@ -252,7 +248,6 @@ class _PredictionTile extends StatelessWidget {
   final String level;
   final Color levelColor;
   final int count;
-  // FIX: onTap para navegar a ReportListScreen con categoría filtrada
   final VoidCallback? onTap;
 
   const _PredictionTile({

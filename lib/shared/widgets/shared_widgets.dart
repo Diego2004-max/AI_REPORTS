@@ -222,7 +222,6 @@ class StatPill extends StatelessWidget {
   final String value;
   final String label;
   final Color dotColor;
-  // FIX: onTap enables navigation from stat pills to a filtered report list
   final VoidCallback? onTap;
 
   const StatPill({
@@ -650,10 +649,6 @@ class AppFilterChip extends StatelessWidget {
 }
 
 // ── PRIMARY BUTTON ────────────────────────────────────────────────────────────
-// FIX (Fix 8): PrimaryButton in shared_widgets — ghost/outlined variant for secondary or destructive actions.
-// Use ghost: true for secondary/destructive actions (e.g., "Cancelar", "Eliminar").
-// Use ghost: false for neumorphic-styled primary actions within the AppBackground design context.
-// Prefer VialButton (vial_button.dart) for standard form CTAs outside this design context.
 class PrimaryButton extends StatefulWidget {
   final String label;
   final VoidCallback? onPressed;

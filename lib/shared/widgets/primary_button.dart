@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../app/theme/app_colors.dart';
 
-// FIX (Fix 8): PrimaryButton (primary_button.dart) — elevated button with customizable colors.
-// Use for: special-case CTAs that require a custom backgroundColor or foregroundColor
-// (e.g., themed onboarding flows, branded partner screens).
-// For standard app actions use VialButton (vial_button.dart) instead.
-// TODO: confirmar con diseño — evaluate whether this and VialButton can be consolidated.
-
 /// Full-width elevated button with loading-state support.
 /// Use this instead of raw [ElevatedButton] everywhere in the app.
 class PrimaryButton extends StatelessWidget {

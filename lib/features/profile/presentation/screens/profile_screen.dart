@@ -98,7 +98,6 @@ class ProfileScreen extends ConsumerWidget {
                     MenuItem(
                       icon: Icons.notifications_none_rounded,
                       label: 'Notificaciones',
-                      // FIX: use named Go Router route instead of raw MaterialPageRoute
                       onTap: () => context.push(AppRoutes.notifications),
                     ),
                     MenuItem(
@@ -125,7 +124,6 @@ class ProfileScreen extends ConsumerWidget {
                       iconColor: AppColors.error,
                       labelColor: AppColors.error,
                       showDivider: false,
-                      // FIX: show confirmation dialog before executing destructive logout action
                       onTap: () async {
                         final confirmed = await showDialog<bool>(
                           context: context,

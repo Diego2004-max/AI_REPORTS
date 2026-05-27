@@ -6,7 +6,6 @@ class AiClassificationCard extends StatelessWidget {
   final AiClassification classification;
   final VoidCallback? onAcceptCategory;
   final VoidCallback? onAcceptSeverity;
-  // FIX: track whether each field is already applied to show "Editar" instead of "Aplicar"
   final bool categoryAccepted;
   final bool severityAccepted;
 
@@ -160,7 +159,6 @@ class _SuggestionRow extends StatelessWidget {
   final String value;
   final Color? valueColor;
   final VoidCallback? onAccept;
-  // FIX: when true shows "Editar" (value already applied) instead of "Aplicar"
   final bool isApplied;
 
   const _SuggestionRow({
@@ -205,7 +203,6 @@ class _SuggestionRow extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                // FIX: "Editar" uses outline style; "Aplicar" uses filled style
                 color: isApplied ? Colors.transparent : primaryTone,
                 borderRadius: BorderRadius.circular(20),
                 border: isApplied
