@@ -12,6 +12,7 @@ class ReportModel {
   final double? longitude;
   final List<String> imagePaths;
   final String? audioPath;
+  final String? severity;
   final String? aiCategory;
   final double? aiConfidence;
   final double? priorityScore;
@@ -31,6 +32,7 @@ class ReportModel {
     this.longitude,
     this.imagePaths = const [],
     this.audioPath,
+    this.severity,
     this.aiCategory,
     this.aiConfidence,
     this.priorityScore,
@@ -58,6 +60,7 @@ class ReportModel {
       'longitude': longitude,
       'imagePaths': cleanImagePaths,
       'audioPath': cleanAudioPath?.isNotEmpty == true ? cleanAudioPath : null,
+      'severity': severity,
       'aiCategory': aiCategory,
       'aiConfidence': aiConfidence,
       'priorityScore': priorityScore,
@@ -97,6 +100,7 @@ class ReportModel {
           ? rawImagePaths
           : (imageUrl != null && imageUrl.isNotEmpty ? [imageUrl] : const []),
       audioPath: audioUrl != null && audioUrl.isNotEmpty ? audioUrl : null,
+      severity: (map['severity']) as String?,
       aiCategory: (map['aiCategory'] ?? map['ai_category']) as String?,
       aiConfidence: ((map['aiConfidence'] ?? map['ai_confidence']) as num?)
           ?.toDouble(),

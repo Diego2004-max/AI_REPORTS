@@ -355,6 +355,7 @@ class ReportRepositoryImpl {
           ? [imageUrl]
           : const [],
       audioPath: audioUrl != null && audioUrl.isNotEmpty ? audioUrl : null,
+      severity: row['severity'] as String?,
       aiCategory: row['ai_category'] as String?,
       aiConfidence: (row['ai_confidence'] as num?)?.toDouble(),
       priorityScore: (row['priority_score'] as num?)?.toDouble(),
