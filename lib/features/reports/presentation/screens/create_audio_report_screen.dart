@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:reportes_ai/app/theme/app_colors.dart';
 import 'package:reportes_ai/core/constants/app_constants.dart';
@@ -9,6 +9,7 @@ import 'package:reportes_ai/core/services/location_service.dart';
 import 'package:reportes_ai/core/services/voice_service.dart';
 import 'package:reportes_ai/core/services/speech_service.dart';
 import 'package:reportes_ai/data/models/ai_classification.dart';
+import 'package:reportes_ai/features/reports/presentation/screens/location_picker_screen.dart';
 import 'package:reportes_ai/shared/widgets/ai_classification_card.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
@@ -45,7 +46,7 @@ class _CreateAudioReportScreenState
   String _selectedCategory = 'Accidente';
   String _selectedSeverity = 'Moderado';
 
-  Position? _currentPosition;
+  LatLng? _reportLatLng;
   String? _locationLabel;
 
   String? _imagePath;
@@ -130,7 +131,7 @@ class _CreateAudioReportScreenState
       );
       if (!mounted) return;
       setState(() {
-        _currentPosition = position;
+        _reportLatLng = LatLng(position.latitude, position.longitude);
         _locationLabel =
             address ??
             'Lat ${position.latitude.toStringAsFixed(5)}, Lng ${position.longitude.toStringAsFixed(5)}';
@@ -143,6 +144,23 @@ class _CreateAudioReportScreenState
     } finally {
       if (mounted) setState(() => _isGettingLocation = false);
     }
+  }
+
+  Future<void> _openLocationPicker() async {
+    final result = await Navigator.push<LocationPickerResult>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LocationPickerScreen(
+          initialLatitude: _reportLatLng?.latitude,
+          initialLongitude: _reportLatLng?.longitude,
+        ),
+      ),
+    );
+    if (!mounted || result == null) return;
+    setState(() {
+      _reportLatLng = LatLng(result.latitude, result.longitude);
+      _locationLabel = result.label;
+    });
   }
 
   Future<void> _startRecording() async {
@@ -569,7 +587,7 @@ class _CreateAudioReportScreenState
       ).showSnackBar(const SnackBar(content: Text('Debes iniciar sesión')));
       return;
     }
-    if (_currentPosition == null) {
+    if (_reportLatLng == null) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Debes capturar ubicación')));
@@ -628,8 +646,8 @@ class _CreateAudioReportScreenState
           credibilityScore = await _aiService.getCredibilityScore(
             userId: userId,
             description: description,
-            latitude: _currentPosition!.latitude,
-            longitude: _currentPosition!.longitude,
+            latitude: _reportLatLng!.latitude,
+            longitude: _reportLatLng!.longitude,
           );
           if (!mounted) return;
           priorityScore = await _aiService.getPriorityScore(
@@ -659,8 +677,8 @@ class _CreateAudioReportScreenState
             category: finalCategory,
             severity: finalSeverity,
             locationLabel: _locationLabel,
-            latitude: _currentPosition?.latitude,
-            longitude: _currentPosition?.longitude,
+            latitude: _reportLatLng?.latitude,
+            longitude: _reportLatLng?.longitude,
             imagePaths: _imagePath != null ? [_imagePath!] : const [],
             audioPath: _audioPath,
             aiCategory: aiResult?.rawAiCategory.isNotEmpty == true
@@ -693,7 +711,7 @@ class _CreateAudioReportScreenState
     final isDark = theme.brightness == Brightness.dark;
     final primaryTone = isDark ? AppColors.primaryLight : AppColors.primary;
     final canSubmit =
-        !_isLoading && _audioPath != null && _currentPosition != null;
+        !_isLoading && _audioPath != null && _reportLatLng != null;
     final transcriptionText = _descriptionController.text.trim();
     final canAnalyze =
         transcriptionText.isNotEmpty && !_isAnalyzing && !_isDictating;
@@ -756,28 +774,65 @@ class _CreateAudioReportScreenState
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
+                    // Live map thumbnail (or loading / empty state)
                     Container(
-                      height: 120,
+                      height: 140,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         color: _surfaceLow(context),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: _softBorder(context)),
                       ),
-                      child: Center(
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: primaryTone.withAlpha(isDark ? 36 : 50),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.location_on_rounded,
-                            color: primaryTone,
-                            size: 28,
-                          ),
-                        ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: _isGettingLocation
+                            ? const Center(child: CircularProgressIndicator())
+                            : _reportLatLng != null
+                            ? AbsorbPointer(
+                                child: GoogleMap(
+                                  initialCameraPosition: CameraPosition(
+                                    target: _reportLatLng!,
+                                    zoom: 15,
+                                  ),
+                                  markers: {
+                                    Marker(
+                                      markerId: const MarkerId(
+                                        'report_location',
+                                      ),
+                                      position: _reportLatLng!,
+                                    ),
+                                  },
+                                  zoomControlsEnabled: false,
+                                  scrollGesturesEnabled: false,
+                                  zoomGesturesEnabled: false,
+                                  rotateGesturesEnabled: false,
+                                  tiltGesturesEnabled: false,
+                                  myLocationButtonEnabled: false,
+                                  compassEnabled: false,
+                                  mapToolbarEnabled: false,
+                                  liteModeEnabled: true,
+                                ),
+                              )
+                            : Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.location_off_outlined,
+                                      size: 32,
+                                      color: _textSecondary(context),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Ubicación no disponible',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: _textSecondary(context),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -809,7 +864,7 @@ class _CreateAudioReportScreenState
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'UBICACIÓN ACTUAL',
+                                  'UBICACIÓN DEL REPORTE',
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
@@ -826,7 +881,8 @@ class _CreateAudioReportScreenState
                                         ),
                                       )
                                     : Text(
-                                        _locationLabel ?? 'Buscando...',
+                                        _locationLabel ??
+                                            'Sin ubicación — toca Cambiar',
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w600,
@@ -838,11 +894,59 @@ class _CreateAudioReportScreenState
                               ],
                             ),
                           ),
-                          TextButton(
-                            onPressed: _isGettingLocation
-                                ? null
-                                : _loadCurrentLocation,
-                            child: const Text('Actualizar'),
+                          // GPS quick-refresh + full location picker
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_isGettingLocation)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                  ),
+                                  child: SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: primaryTone,
+                                    ),
+                                  ),
+                                )
+                              else
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.gps_fixed_rounded,
+                                    size: 17,
+                                    color: primaryTone,
+                                  ),
+                                  tooltip: 'Usar mi ubicación GPS',
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(
+                                    minWidth: 32,
+                                    minHeight: 32,
+                                  ),
+                                  onPressed: _loadCurrentLocation,
+                                ),
+                              TextButton(
+                                onPressed: _openLocationPicker,
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                  ),
+                                  minimumSize: const Size(0, 32),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  'Cambiar',
+                                  style: TextStyle(
+                                    color: primaryTone,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
