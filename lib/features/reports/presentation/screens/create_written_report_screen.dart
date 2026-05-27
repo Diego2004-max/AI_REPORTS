@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -138,13 +139,15 @@ class _CreateWrittenReportScreenState
   }
 
   Future<void> _showImageSourceSheet() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surfaceContainerLowest,
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.surfaceContainerLowest,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetContext) {
+        final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -161,13 +164,13 @@ class _CreateWrittenReportScreenState
                   ),
                 ),
                 ListTile(
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.photo_library_outlined,
-                    color: AppColors.textPrimary,
+                    color: textColor,
                   ),
-                  title: const Text(
+                  title: Text(
                     'Seleccionar de galería',
-                    style: TextStyle(color: AppColors.textPrimary),
+                    style: TextStyle(color: textColor),
                   ),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
@@ -175,13 +178,13 @@ class _CreateWrittenReportScreenState
                   },
                 ),
                 ListTile(
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.photo_camera_outlined,
-                    color: AppColors.textPrimary,
+                    color: textColor,
                   ),
-                  title: const Text(
+                  title: Text(
                     'Tomar foto',
-                    style: TextStyle(color: AppColors.textPrimary),
+                    style: TextStyle(color: textColor),
                   ),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
@@ -232,13 +235,15 @@ class _CreateWrittenReportScreenState
 
   // FIX: bottom sheet so user can override the AI-assigned category
   Future<void> _showCategoryEditSheet() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surfaceContainerLowest,
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.surfaceContainerLowest,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
+        final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
@@ -255,12 +260,12 @@ class _CreateWrittenReportScreenState
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                const Text(
+                Text(
                   'Cambiar categoría',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: textColor,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -321,13 +326,15 @@ class _CreateWrittenReportScreenState
 
   // FIX: bottom sheet so user can override the AI-assigned severity
   Future<void> _showSeverityEditSheet() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surfaceContainerLowest,
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.surfaceContainerLowest,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
+        final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
@@ -344,12 +351,12 @@ class _CreateWrittenReportScreenState
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                const Text(
+                Text(
                   'Cambiar severidad',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: textColor,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -519,7 +526,9 @@ class _CreateWrittenReportScreenState
 
   @override
   Widget build(BuildContext context) {
-    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final scaffoldBg = theme.scaffoldBackgroundColor;
     // FIX: submit disabled until AI analysis has classified the report
     final canSubmit =
         _aiResult != null &&
@@ -534,7 +543,7 @@ class _CreateWrittenReportScreenState
         surfaceTintColor: Colors.transparent,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            color: AppColors.surfaceContainerLowest.withAlpha(200),
+            color: (isDark ? AppColors.darkSurface : AppColors.surfaceContainerLowest).withAlpha(200),
             border: Border(
               bottom: BorderSide(color: AppColors.surfaceContainerHighest),
             ),
@@ -544,13 +553,13 @@ class _CreateWrittenReportScreenState
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.primary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Nuevo reporte',
-          style: TextStyle(
+          style: GoogleFonts.playfairDisplay(
             color: AppColors.primary,
             fontSize: 20,
-            fontWeight: FontWeight.bold,
-            letterSpacing: -0.5,
+            fontWeight: FontWeight.w400,
+            fontStyle: FontStyle.italic,
           ),
         ),
         centerTitle: true,
@@ -558,9 +567,12 @@ class _CreateWrittenReportScreenState
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
               // FIX 1 — paso 1: Descripción + botón "Analizar con IA"
               VialCard(
                 padding: const EdgeInsets.all(24),
@@ -965,6 +977,8 @@ class _CreateWrittenReportScreenState
               const SizedBox(height: 40),
             ],
           ),
+        ),
+      ),
         ),
       ),
     );
