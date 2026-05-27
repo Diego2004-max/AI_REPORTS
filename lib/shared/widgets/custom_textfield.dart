@@ -56,6 +56,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return TextFormField(
       controller: widget.controller,
@@ -67,7 +68,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
       maxLines: _obscure ? 1 : widget.maxLines,
       enabled: widget.enabled,
       autofillHints: widget.autofillHints,
-      style: theme.textTheme.bodyLarge,
+      cursorColor: colorScheme.primary,
+      style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
       onChanged: widget.onChanged,
       onFieldSubmitted: widget.onFieldSubmitted,
       validator: widget.validator,
@@ -81,8 +83,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 child: widget.prefixIcon,
               )
             : null,
-        prefixIconConstraints:
-            const BoxConstraints(minWidth: 48, minHeight: 48),
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: 48,
+          minHeight: 48,
+        ),
         suffixIcon: widget.obscureText
             ? IconButton(
                 onPressed: _toggleObscure,

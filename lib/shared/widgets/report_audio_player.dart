@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:cross_file/cross_file.dart';
 
+import 'package:reportes_ai/app/theme/app_colors.dart';
+import 'package:reportes_ai/app/theme/app_spacing.dart';
+
 class ReportAudioPlayer extends StatefulWidget {
   const ReportAudioPlayer({super.key, required this.audioPath});
 
@@ -88,35 +91,57 @@ class _ReportAudioPlayerState extends State<ReportAudioPlayer> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryTone = isDark ? AppColors.primaryLight : AppColors.primary;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
+    final surface = isDark ? AppColors.darkSurfaceVariant : AppColors.surface;
+    final border = isDark ? AppColors.darkBorder : AppColors.border;
 
     if (_errorMessage != null) {
-      return Row(
-        children: [
-          Icon(
-            Icons.error_outline_rounded,
-            size: 18,
-            color: theme.colorScheme.error,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(_errorMessage!, style: theme.textTheme.bodyMedium),
-          ),
-        ],
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          border: Border.all(color: border),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              size: 18,
+              color: theme.colorScheme.error,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                _errorMessage!,
+                style: theme.textTheme.bodyMedium?.copyWith(color: textPrimary),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     if (!_isReady) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 8),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
-            SizedBox(
+            const SizedBox(
               width: 18,
               height: 18,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
-            SizedBox(width: 12),
-            Text('Cargando audio...'),
+            const SizedBox(width: 12),
+            Text(
+              'Cargando audio...',
+              style: theme.textTheme.bodyMedium?.copyWith(color: textSecondary),
+            ),
           ],
         ),
       );
@@ -135,6 +160,18 @@ class _ReportAudioPlayerState extends State<ReportAudioPlayer> {
               runSpacing: 8,
               children: [
                 FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: primaryTone,
+                    foregroundColor: AppColors.onPrimary,
+                    minimumSize: const Size(0, 44),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    ),
+                  ),
                   onPressed: () async {
                     if (isPlaying) {
                       await _player.pause();
@@ -148,6 +185,23 @@ class _ReportAudioPlayerState extends State<ReportAudioPlayer> {
                   label: Text(isPlaying ? 'Pausar audio' : 'Reproducir audio'),
                 ),
                 OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: isDark
+                        ? AppColors.darkSurfaceVariant
+                        : Colors.transparent,
+                    foregroundColor: isDark
+                        ? AppColors.darkTextPrimary
+                        : AppColors.textPrimary,
+                    side: BorderSide(color: border),
+                    minimumSize: const Size(0, 44),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    ),
+                  ),
                   onPressed: () async {
                     await _player.pause();
                     await _player.seek(Duration.zero);
@@ -185,6 +239,8 @@ class _ReportAudioPlayerState extends State<ReportAudioPlayer> {
                         Slider(
                           value: currentValue,
                           max: maxValue,
+                          activeColor: primaryTone,
+                          inactiveColor: border,
                           onChanged: (value) async {
                             await _player.seek(
                               Duration(milliseconds: value.toInt()),
@@ -193,7 +249,9 @@ class _ReportAudioPlayerState extends State<ReportAudioPlayer> {
                         ),
                         Text(
                           '${_formatDuration(position)} / ${_formatDuration(total)}',
-                          style: theme.textTheme.bodySmall,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: textSecondary,
+                          ),
                         ),
                       ],
                     );

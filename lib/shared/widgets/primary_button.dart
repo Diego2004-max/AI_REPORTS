@@ -32,8 +32,17 @@ class PrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bgColor = backgroundColor ?? AppColors.primary;
+    final isDark = theme.brightness == Brightness.dark;
+    final bgColor =
+        backgroundColor ??
+        (isDark ? AppColors.primaryLight : AppColors.primary);
     final fgColor = foregroundColor ?? AppColors.textOnPrimary;
+    final disabledBg = isDark
+        ? AppColors.darkSurfaceVariant
+        : AppColors.surfaceContainerHigh;
+    final disabledFg = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
 
     return SizedBox(
       width: double.infinity,
@@ -43,8 +52,12 @@ class PrimaryButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: isLoading ? bgColor.withAlpha(180) : bgColor,
           foregroundColor: fgColor,
-          disabledBackgroundColor: bgColor.withAlpha(180),
-          disabledForegroundColor: fgColor.withAlpha(180),
+          disabledBackgroundColor: isLoading
+              ? bgColor.withAlpha(180)
+              : disabledBg,
+          disabledForegroundColor: isLoading
+              ? fgColor.withAlpha(180)
+              : disabledFg,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -60,27 +73,27 @@ class PrimaryButton extends StatelessWidget {
                 ),
               )
             : icon != null
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      icon!,
-                      const SizedBox(width: 10),
-                      Text(
-                        label,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: fgColor,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
-                  )
-                : Text(
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  icon!,
+                  const SizedBox(width: 10),
+                  Text(
                     label,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: fgColor,
                       fontSize: 15,
                     ),
                   ),
+                ],
+              )
+            : Text(
+                label,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: fgColor,
+                  fontSize: 15,
+                ),
+              ),
       ),
     );
   }
@@ -106,6 +119,12 @@ class SecondaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final fgColor = isDark ? AppColors.darkTextPrimary : AppColors.primary;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.primary;
+    final disabledFg = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.textSecondary;
 
     return SizedBox(
       width: double.infinity,
@@ -113,43 +132,45 @@ class SecondaryButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: isLoading ? null : onPressed,
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          side: const BorderSide(color: AppColors.primary, width: 1.5),
+          foregroundColor: fgColor,
+          disabledForegroundColor: disabledFg,
+          backgroundColor: isDark ? AppColors.darkSurfaceVariant : null,
+          side: BorderSide(color: borderColor, width: 1.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
         ),
         child: isLoading
-            ? const SizedBox(
+            ? SizedBox(
                 height: 22,
                 width: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: AppColors.primary,
+                  color: isDark ? AppColors.primaryLight : AppColors.primary,
                 ),
               )
             : icon != null
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      icon!,
-                      const SizedBox(width: 10),
-                      Text(
-                        label,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: AppColors.primary,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
-                  )
-                : Text(
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  icon!,
+                  const SizedBox(width: 10),
+                  Text(
                     label,
                     style: theme.textTheme.labelLarge?.copyWith(
-                      color: AppColors.primary,
+                      color: fgColor,
                       fontSize: 15,
                     ),
                   ),
+                ],
+              )
+            : Text(
+                label,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: fgColor,
+                  fontSize: 15,
+                ),
+              ),
       ),
     );
   }

@@ -20,13 +20,22 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final badgeColor = status.statusColor;
+    final bgColor = isDark ? badgeColor.withAlpha(32) : status.statusBackground;
+    final borderColor = isDark
+        ? badgeColor.withAlpha(90)
+        : badgeColor.withAlpha(45);
+
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 88),
+      constraints: const BoxConstraints(maxWidth: 96, minHeight: 24),
       child: Container(
         padding: EdgeInsets.fromLTRB(showIcon ? 7 : 9, 4, 9, 4),
         decoration: BoxDecoration(
-          color: status.statusBackground,
+          color: bgColor,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor),
         ),
         child: FittedBox(
           fit: BoxFit.scaleDown,
@@ -34,18 +43,18 @@ class StatusBadge extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (showIcon) ...[
-                Icon(_icon(), size: 12, color: status.statusColor),
+                Icon(_icon(), size: 12, color: badgeColor),
                 const SizedBox(width: 4),
               ],
               Text(
                 _displayLabel,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+                style: theme.textTheme.labelSmall?.copyWith(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: status.statusColor,
-                  letterSpacing: 0.4,
+                  color: badgeColor,
+                  letterSpacing: 0,
                 ),
               ),
             ],

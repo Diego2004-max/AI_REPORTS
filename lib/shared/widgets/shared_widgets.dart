@@ -53,9 +53,11 @@ class _AppCardState extends State<AppCard> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = widget.color ??
-        (isDark ? AppColors.darkSurface : AppColors.surface);
+    final cardBg =
+        widget.color ??
+        (isDark ? AppColors.darkSurface : AppColors.surfaceContainerLow);
     final shadows = isDark ? AppShadows.darkCard : AppShadows.card;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.border;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
@@ -70,6 +72,7 @@ class _AppCardState extends State<AppCard> {
         decoration: BoxDecoration(
           color: cardBg,
           borderRadius: BorderRadius.circular(widget.radius),
+          border: Border.all(color: borderColor),
           boxShadow: _pressed ? AppShadows.darkPressed : shadows,
         ),
         child: widget.child,
@@ -111,13 +114,28 @@ class _BrandPainter extends CustomPainter {
     final paint = Paint()..style = PaintingStyle.fill;
 
     paint.color = Colors.white.withValues(alpha: 0.7);
-    canvas.drawRRect(RRect.fromLTRBR(2 * w, 18 * h, 9 * w, 32 * h, const Radius.circular(2)), paint);
+    canvas.drawRRect(
+      RRect.fromLTRBR(2 * w, 18 * h, 9 * w, 32 * h, const Radius.circular(2)),
+      paint,
+    );
 
     paint.color = Colors.white;
-    canvas.drawRRect(RRect.fromLTRBR(13.5 * w, 10 * h, 20.5 * w, 32 * h, const Radius.circular(2)), paint);
+    canvas.drawRRect(
+      RRect.fromLTRBR(
+        13.5 * w,
+        10 * h,
+        20.5 * w,
+        32 * h,
+        const Radius.circular(2),
+      ),
+      paint,
+    );
 
     paint.color = Colors.white.withValues(alpha: 0.7);
-    canvas.drawRRect(RRect.fromLTRBR(25 * w, 2 * h, 32 * w, 32 * h, const Radius.circular(2)), paint);
+    canvas.drawRRect(
+      RRect.fromLTRBR(25 * w, 2 * h, 32 * w, 32 * h, const Radius.circular(2)),
+      paint,
+    );
 
     // Accent dot — single color highlight
     paint.color = AppColors.success;
@@ -134,21 +152,27 @@ enum ReportStatus { active, atendido }
 extension ReportStatusExt on ReportStatus {
   String get label {
     switch (this) {
-      case ReportStatus.atendido: return 'Atendido';
-      case ReportStatus.active:   return 'Activo';
+      case ReportStatus.atendido:
+        return 'Atendido';
+      case ReportStatus.active:
+        return 'Activo';
     }
   }
 
   Color get dotColor {
     switch (this) {
-      case ReportStatus.atendido: return AppColors.success;
-      case ReportStatus.active:   return AppColors.accent;
+      case ReportStatus.atendido:
+        return AppColors.success;
+      case ReportStatus.active:
+        return AppColors.accent;
     }
   }
 
   static ReportStatus fromString(String s) {
     final lower = s.toLowerCase();
-    if (lower.contains('atendido') || lower.contains('verific')) return ReportStatus.atendido;
+    if (lower.contains('atendido') || lower.contains('verific')) {
+      return ReportStatus.atendido;
+    }
     return ReportStatus.active;
   }
 }
@@ -172,14 +196,19 @@ class StatusBadge extends StatelessWidget {
           Container(
             width: 5,
             height: 5,
-            decoration: BoxDecoration(color: status.dotColor, shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: status.dotColor,
+              shape: BoxShape.circle,
+            ),
           ),
           const SizedBox(width: 5),
           Text(
             status.label,
-            style: GoogleFonts.dmSans(
-              fontSize: 10, fontWeight: FontWeight.w400,
-              color: status.dotColor, letterSpacing: 0.3,
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 10,
+              fontWeight: FontWeight.w400,
+              color: status.dotColor,
+              letterSpacing: 0.3,
             ),
           ),
         ],
@@ -221,22 +250,30 @@ class StatPill extends StatelessWidget {
             Container(
               width: 6,
               height: 6,
-              decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: dotColor,
+                shape: BoxShape.circle,
+              ),
             ),
             const SizedBox(height: 10),
             Text(
               value,
               style: GoogleFonts.playfairDisplay(
-                fontSize: 42, fontWeight: FontWeight.w400,
-                fontStyle: FontStyle.italic, color: textColor, height: 1.0,
+                fontSize: 42,
+                fontWeight: FontWeight.w400,
+                fontStyle: FontStyle.italic,
+                color: textColor,
+                height: 1.0,
               ),
             ),
             const SizedBox(height: 6),
             Text(
               label.toUpperCase(),
-              style: GoogleFonts.dmSans(
-                fontSize: 10, fontWeight: FontWeight.w300,
-                color: mutedColor, letterSpacing: 0.8,
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 10,
+                fontWeight: FontWeight.w300,
+                color: mutedColor,
+                letterSpacing: 0.8,
               ),
             ),
           ],
@@ -270,17 +307,21 @@ class ResolutionBar extends StatelessWidget {
           children: [
             Text(
               'Tasa de resolución',
-              style: GoogleFonts.dmSans(
-                fontSize: 10, fontWeight: FontWeight.w300,
-                color: labelColor, letterSpacing: 0.8,
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 10,
+                fontWeight: FontWeight.w300,
+                color: labelColor,
+                letterSpacing: 0.8,
               ),
             ),
             const Spacer(),
             Text(
               '${(pct * 100).round()}%',
               style: GoogleFonts.playfairDisplay(
-                fontSize: 15, fontWeight: FontWeight.w400,
-                fontStyle: FontStyle.italic, color: percentColor,
+                fontSize: 15,
+                fontWeight: FontWeight.w400,
+                fontStyle: FontStyle.italic,
+                color: percentColor,
               ),
             ),
           ],
@@ -293,10 +334,20 @@ class ResolutionBar extends StatelessWidget {
             decoration: BoxDecoration(
               color: trackColor,
               borderRadius: AppRadius.borderFull,
-              boxShadow: isDark ? null : const [
-                BoxShadow(color: Color(0x50AEB7CE), blurRadius: 4, offset: Offset(2, 2)),
-                BoxShadow(color: Color(0xE6FFFFFF), blurRadius: 4, offset: Offset(-2, -2)),
-              ],
+              boxShadow: isDark
+                  ? null
+                  : const [
+                      BoxShadow(
+                        color: Color(0x50AEB7CE),
+                        blurRadius: 4,
+                        offset: Offset(2, 2),
+                      ),
+                      BoxShadow(
+                        color: Color(0xE6FFFFFF),
+                        blurRadius: 4,
+                        offset: Offset(-2, -2),
+                      ),
+                    ],
             ),
             child: FractionallySizedBox(
               widthFactor: pct,
@@ -321,7 +372,12 @@ class SectionHeader extends StatelessWidget {
   final String? action;
   final VoidCallback? onAction;
 
-  const SectionHeader({super.key, required this.title, this.action, this.onAction});
+  const SectionHeader({
+    super.key,
+    required this.title,
+    this.action,
+    this.onAction,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -336,9 +392,11 @@ class SectionHeader extends StatelessWidget {
         children: [
           Text(
             title.toUpperCase(),
-            style: GoogleFonts.dmSans(
-              fontSize: 10, fontWeight: FontWeight.w300,
-              color: mutedColor, letterSpacing: 0.8,
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 10,
+              fontWeight: FontWeight.w300,
+              color: mutedColor,
+              letterSpacing: 0.8,
             ),
           ),
           const Spacer(),
@@ -347,9 +405,11 @@ class SectionHeader extends StatelessWidget {
               onTap: onAction,
               child: Text(
                 action!,
-                style: GoogleFonts.dmSans(
-                  fontSize: 10, fontWeight: FontWeight.w400,
-                  color: AppColors.accent, letterSpacing: 0.2,
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.accent,
+                  letterSpacing: 0.2,
                 ),
               ),
             ),
@@ -404,43 +464,39 @@ class ReportCard extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: GoogleFonts.dmSans(
-                          fontSize: 15, fontWeight: FontWeight.w400,
-                          color: textColor, height: 1.35,
+                        style: GoogleFonts.playfairDisplay(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          color: textColor,
+                          height: 1.35,
                         ),
                       ),
                       if (category != null) ...[
                         const SizedBox(height: 3),
                         Text(
                           category!,
-                          style: GoogleFonts.dmSans(
-                            fontSize: 10, fontWeight: FontWeight.w300,
-                            color: faintColor, letterSpacing: 0.3,
+                          style: GoogleFonts.playfairDisplay(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w300,
+                            color: faintColor,
+                            letterSpacing: 0.3,
                           ),
                         ),
                       ],
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                heroTag != null
-                    ? Hero(
-                        tag: heroTag!,
-                        child: Material(
-                          type: MaterialType.transparency,
-                          child: StatusBadge(status: status),
-                        ),
-                      )
-                    : StatusBadge(status: status),
               ],
             ),
             if (description != null) ...[
               const SizedBox(height: 10),
               Text(
                 description!,
-                style: GoogleFonts.dmSans(
-                  fontSize: 12, fontWeight: FontWeight.w300,
-                  color: mutedColor, height: 1.55,
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w300,
+                  color: mutedColor,
+                  height: 1.55,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -451,9 +507,11 @@ class ReportCard extends StatelessWidget {
               children: [
                 Text(
                   date,
-                  style: GoogleFonts.dmSans(
-                    fontSize: 10, fontWeight: FontWeight.w300,
-                    color: faintColor, letterSpacing: 0.3,
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w300,
+                    color: faintColor,
+                    letterSpacing: 0.3,
                   ),
                 ),
                 const Spacer(),
@@ -508,13 +566,17 @@ class AppSearchBar extends StatelessWidget {
             child: TextField(
               controller: controller,
               onChanged: onChanged,
-              style: GoogleFonts.dmSans(
-                fontSize: 13, fontWeight: FontWeight.w300, color: textColor,
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 13,
+                fontWeight: FontWeight.w300,
+                color: textColor,
               ),
               decoration: InputDecoration(
                 hintText: hint ?? 'Buscar...',
-                hintStyle: GoogleFonts.dmSans(
-                  fontSize: 13, fontWeight: FontWeight.w300, color: hintColor,
+                hintStyle: GoogleFonts.playfairDisplay(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w300,
+                  color: hintColor,
                 ),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
@@ -567,12 +629,15 @@ class AppFilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? selectedBg : unselectedBg,
           borderRadius: AppRadius.borderFull,
-          boxShadow: selected ? AppShadows.darkPressed : (isDark ? AppShadows.darkCard : AppShadows.soft),
+          boxShadow: selected
+              ? AppShadows.darkPressed
+              : (isDark ? AppShadows.darkCard : AppShadows.soft),
         ),
         child: Text(
           label,
-          style: GoogleFonts.dmSans(
-            fontSize: 12, fontWeight: FontWeight.w300,
+          style: GoogleFonts.playfairDisplay(
+            fontSize: 12,
+            fontWeight: FontWeight.w300,
             color: selected ? selectedFg : unselectedFg,
             letterSpacing: 0.3,
           ),
@@ -611,26 +676,34 @@ class _PrimaryButtonState extends State<PrimaryButton> {
   @override
   Widget build(BuildContext context) {
     if (widget.ghost) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final fg = isDark ? AppColors.primaryLight : AppColors.primary;
+      final border = isDark ? AppColors.primaryLight : AppColors.primary;
+      final bg = isDark ? AppColors.darkSurfaceVariant : Colors.transparent;
       return SizedBox(
         height: 52,
         width: double.infinity,
         child: OutlinedButton(
           onPressed: widget.loading ? null : widget.onPressed,
           style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: AppColors.border, width: 1),
+            backgroundColor: bg,
+            foregroundColor: fg,
+            side: BorderSide(color: border, width: 1.2),
             shape: const StadiumBorder(),
           ),
           child: widget.loading
-              ? const SizedBox(
+              ? SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.muted),
+                  child: CircularProgressIndicator(strokeWidth: 1.5, color: fg),
                 )
               : Text(
                   widget.label,
-                  style: GoogleFonts.dmSans(
-                    fontSize: 14, fontWeight: FontWeight.w300,
-                    color: AppColors.muted, letterSpacing: 0.3,
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: fg,
+                    letterSpacing: 0,
                   ),
                 ),
         ),
@@ -638,8 +711,8 @@ class _PrimaryButtonState extends State<PrimaryButton> {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final btnBg = isDark ? AppColors.darkTextPrimary : AppColors.text;
-    final btnFg = isDark ? AppColors.darkBg : Colors.white;
+    final btnBg = isDark ? AppColors.primaryLight : AppColors.primary;
+    final btnFg = AppColors.onPrimary;
     final btnShadow = isDark ? AppShadows.darkCard : AppShadows.float;
 
     return GestureDetector(
@@ -663,13 +736,18 @@ class _PrimaryButtonState extends State<PrimaryButton> {
               ? SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 1.5, color: btnFg),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.5,
+                    color: btnFg,
+                  ),
                 )
               : Text(
                   widget.label,
-                  style: GoogleFonts.dmSans(
-                    fontSize: 14, fontWeight: FontWeight.w300,
-                    color: btnFg, letterSpacing: 0.6,
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: btnFg,
+                    letterSpacing: 0,
                   ),
                 ),
         ),
@@ -710,11 +788,11 @@ class AppTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.darkSurface : AppColors.surface;
+    final bgColor = isDark ? AppColors.darkSurfaceVariant : AppColors.surface;
     final textColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
-    final labelColor = isDark ? AppColors.darkTextDisabled : AppColors.faint;
-    final iconColor = isDark ? AppColors.darkTextSecondary : AppColors.faint;
-    final shadows = isDark ? AppShadows.darkCard : AppShadows.soft;
+    final labelColor = isDark ? AppColors.darkTextSecondary : AppColors.muted;
+    final iconColor = isDark ? AppColors.darkTextSecondary : AppColors.muted;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.border;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -723,9 +801,12 @@ class AppTextField extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             label.toUpperCase(),
-            style: GoogleFonts.dmSans(
-              fontSize: 10, fontWeight: FontWeight.w300,
-              color: labelColor, letterSpacing: 0.8,
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              fontStyle: FontStyle.italic,
+              color: labelColor,
+              letterSpacing: 0,
             ),
           ),
         ),
@@ -733,7 +814,7 @@ class AppTextField extends StatelessWidget {
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: AppRadius.borderLg,
-            boxShadow: shadows,
+            border: Border.all(color: borderColor),
           ),
           child: TextFormField(
             controller: controller,
@@ -742,8 +823,10 @@ class AppTextField extends StatelessWidget {
             textInputAction: textInputAction,
             onFieldSubmitted: onFieldSubmitted,
             validator: validator,
-            style: GoogleFonts.dmSans(
-              fontSize: 13, fontWeight: FontWeight.w300, color: textColor,
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 15,
+              fontWeight: FontWeight.w400,
+              color: textColor,
             ),
             decoration: InputDecoration(
               hintText: placeholder,
@@ -752,11 +835,21 @@ class AppTextField extends StatelessWidget {
                   : null,
               suffixIcon: suffix,
               errorText: errorText,
+              hintStyle: GoogleFonts.playfairDisplay(
+                fontSize: 15,
+                fontWeight: FontWeight.w400,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textSecondary,
+              ),
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
               fillColor: Colors.transparent,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 16,
+              ),
             ),
           ),
         ),
@@ -803,7 +896,10 @@ class NotifTile extends StatelessWidget {
               width: 3,
               height: 44,
               margin: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(color: color, borderRadius: AppRadius.borderFull),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: AppRadius.borderFull,
+              ),
             ),
             Expanded(
               child: Column(
@@ -811,17 +907,21 @@ class NotifTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 13, fontWeight: FontWeight.w400,
-                      color: titleColor, letterSpacing: 0.2,
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: titleColor,
+                      letterSpacing: 0.2,
                     ),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     message,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 12, fontWeight: FontWeight.w300,
-                      color: bodyColor, height: 1.55,
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w300,
+                      color: bodyColor,
+                      height: 1.55,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -829,9 +929,11 @@ class NotifTile extends StatelessWidget {
                   const SizedBox(height: 7),
                   Text(
                     date,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 10, fontWeight: FontWeight.w300,
-                      color: dateColor, letterSpacing: 0.3,
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w300,
+                      color: dateColor,
+                      letterSpacing: 0.3,
                     ),
                   ),
                 ],
@@ -896,10 +998,30 @@ class AppBottomNav extends StatelessWidget {
   });
 
   static const _items = [
-    _NavItem(icon: Icons.home_outlined, iconOn: Icons.home_rounded, label: 'Inicio', index: 0),
-    _NavItem(icon: Icons.map_outlined, iconOn: Icons.map_rounded, label: 'Mapa', index: 1),
-    _NavItem(icon: Icons.description_outlined, iconOn: Icons.description_rounded, label: 'Reportes', index: 2),
-    _NavItem(icon: Icons.person_outline_rounded, iconOn: Icons.person_rounded, label: 'Perfil', index: 3),
+    _NavItem(
+      icon: Icons.home_outlined,
+      iconOn: Icons.home_rounded,
+      label: 'Inicio',
+      index: 0,
+    ),
+    _NavItem(
+      icon: Icons.map_outlined,
+      iconOn: Icons.map_rounded,
+      label: 'Mapa',
+      index: 1,
+    ),
+    _NavItem(
+      icon: Icons.description_outlined,
+      iconOn: Icons.description_rounded,
+      label: 'Reportes',
+      index: 2,
+    ),
+    _NavItem(
+      icon: Icons.person_outline_rounded,
+      iconOn: Icons.person_rounded,
+      label: 'Perfil',
+      index: 3,
+    ),
   ];
 
   @override
@@ -950,7 +1072,9 @@ class AppBottomNav extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final active = currentIndex == item.index;
     final activeColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
-    final inactiveColor = isDark ? AppColors.darkTextSecondary : AppColors.faint;
+    final inactiveColor = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.faint;
     final itemColor = active ? activeColor : inactiveColor;
 
     return Expanded(
@@ -960,15 +1084,11 @@ class AppBottomNav extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              active ? item.iconOn : item.icon,
-              size: 20,
-              color: itemColor,
-            ),
+            Icon(active ? item.iconOn : item.icon, size: 20, color: itemColor),
             const SizedBox(height: 4),
             Text(
               item.label.toUpperCase(),
-              style: GoogleFonts.dmSans(
+              style: GoogleFonts.playfairDisplay(
                 fontSize: 9,
                 fontWeight: active ? FontWeight.w400 : FontWeight.w300,
                 color: itemColor,
@@ -987,7 +1107,12 @@ class _NavItem {
   final IconData iconOn;
   final String label;
   final int index;
-  const _NavItem({required this.icon, required this.iconOn, required this.label, required this.index});
+  const _NavItem({
+    required this.icon,
+    required this.iconOn,
+    required this.label,
+    required this.index,
+  });
 }
 
 // ── EMPTY STATE ───────────────────────────────────────────────────────────────
@@ -996,7 +1121,12 @@ class EmptyState extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const EmptyState({super.key, required this.icon, required this.title, required this.subtitle});
+  const EmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1004,7 +1134,9 @@ class EmptyState extends StatelessWidget {
     final iconBg = isDark ? AppColors.darkSurface : AppColors.surface;
     final iconColor = isDark ? AppColors.darkTextSecondary : AppColors.faint;
     final titleColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
-    final subtitleColor = isDark ? AppColors.darkTextSecondary : AppColors.muted;
+    final subtitleColor = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.muted;
     final shadows = isDark ? AppShadows.darkFloat : AppShadows.float;
 
     return Center(
@@ -1027,17 +1159,22 @@ class EmptyState extends StatelessWidget {
             Text(
               title,
               style: GoogleFonts.playfairDisplay(
-                fontSize: 22, fontWeight: FontWeight.w400,
-                fontStyle: FontStyle.italic, color: titleColor, height: 1.2,
+                fontSize: 22,
+                fontWeight: FontWeight.w400,
+                fontStyle: FontStyle.italic,
+                color: titleColor,
+                height: 1.2,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               subtitle,
-              style: GoogleFonts.dmSans(
-                fontSize: 12, fontWeight: FontWeight.w300,
-                color: subtitleColor, height: 1.55,
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 12,
+                fontWeight: FontWeight.w300,
+                color: subtitleColor,
+                height: 1.55,
               ),
               textAlign: TextAlign.center,
             ),
@@ -1054,12 +1191,19 @@ class ProfileStat extends StatelessWidget {
   final String label;
   final Color? valueColor;
 
-  const ProfileStat({super.key, required this.value, required this.label, this.valueColor});
+  const ProfileStat({
+    super.key,
+    required this.value,
+    required this.label,
+    this.valueColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultValueColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final defaultValueColor = isDark
+        ? AppColors.darkTextPrimary
+        : AppColors.text;
     final labelColor = isDark ? AppColors.darkTextDisabled : AppColors.faint;
 
     return Expanded(
@@ -1068,7 +1212,8 @@ class ProfileStat extends StatelessWidget {
           Text(
             value,
             style: GoogleFonts.playfairDisplay(
-              fontSize: 22, fontWeight: FontWeight.w400,
+              fontSize: 22,
+              fontWeight: FontWeight.w400,
               fontStyle: FontStyle.italic,
               color: valueColor ?? defaultValueColor,
               height: 1.2,
@@ -1077,9 +1222,11 @@ class ProfileStat extends StatelessWidget {
           const SizedBox(height: 5),
           Text(
             label.toUpperCase(),
-            style: GoogleFonts.dmSans(
-              fontSize: 10, fontWeight: FontWeight.w300,
-              color: labelColor, letterSpacing: 0.8,
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 10,
+              fontWeight: FontWeight.w300,
+              color: labelColor,
+              letterSpacing: 0.8,
             ),
           ),
         ],
@@ -1111,8 +1258,11 @@ class MenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final iconBg = isDark ? AppColors.darkSurfaceVariant : AppColors.bg;
-    final textColor = labelColor ?? (isDark ? AppColors.darkTextPrimary : AppColors.text);
-    final arrowColor = (labelColor ?? (isDark ? AppColors.darkTextSecondary : AppColors.faint)).withAlpha(128);
+    final textColor =
+        labelColor ?? (isDark ? AppColors.darkTextPrimary : AppColors.text);
+    final arrowColor =
+        (labelColor ?? (isDark ? AppColors.darkTextSecondary : AppColors.faint))
+            .withAlpha(128);
     final dividerColor = isDark ? AppColors.darkBorder : AppColors.border;
 
     return GestureDetector(
@@ -1132,18 +1282,31 @@ class MenuItem extends StatelessWidget {
                     boxShadow: isDark
                         ? null
                         : const [
-                            BoxShadow(color: Color(0x40AEB7CE), blurRadius: 6, offset: Offset(2, 2)),
-                            BoxShadow(color: Color(0xE6FFFFFF), blurRadius: 6, offset: Offset(-2, -2)),
+                            BoxShadow(
+                              color: Color(0x40AEB7CE),
+                              blurRadius: 6,
+                              offset: Offset(2, 2),
+                            ),
+                            BoxShadow(
+                              color: Color(0xE6FFFFFF),
+                              blurRadius: 6,
+                              offset: Offset(-2, -2),
+                            ),
                           ],
                   ),
-                  child: Icon(icon, size: 15, color: iconColor ?? AppColors.muted),
+                  child: Icon(
+                    icon,
+                    size: 15,
+                    color: iconColor ?? AppColors.muted,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Text(
                     label,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 13, fontWeight: FontWeight.w300,
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w300,
                       color: textColor,
                     ),
                   ),

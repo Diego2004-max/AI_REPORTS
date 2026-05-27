@@ -29,10 +29,7 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBg : AppColors.bg,
-      appBar: const CustomAppBar(
-        title: 'Ajustes',
-        showBack: true,
-      ),
+      appBar: const CustomAppBar(title: 'Ajustes', showBack: true),
       body: AppBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(22, 16, 22, 32),
@@ -45,7 +42,9 @@ class SettingsScreen extends ConsumerWidget {
                   label: 'Mi información',
                   onTap: () => Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const EditProfileScreen(),
+                    ),
                   ),
                 ),
                 MenuItem(
@@ -53,7 +52,9 @@ class SettingsScreen extends ConsumerWidget {
                   label: 'Notificaciones',
                   onTap: () => Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationsScreen(),
+                    ),
                   ),
                 ),
                 MenuItem(
@@ -61,7 +62,11 @@ class SettingsScreen extends ConsumerWidget {
                   label: 'Privacidad',
                   showDivider: false,
                   onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Configuración de privacidad próximamente.')),
+                    const SnackBar(
+                      content: Text(
+                        'Configuración de privacidad próximamente.',
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -155,7 +160,7 @@ class _SettingsSection extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4, bottom: 10),
           child: Text(
             title.toUpperCase(),
-            style: GoogleFonts.dmSans(
+            style: GoogleFonts.playfairDisplay(
               fontSize: 10,
               fontWeight: FontWeight.w300,
               color: mutedColor,
@@ -199,25 +204,37 @@ class _ThemeMenuItem extends StatelessWidget {
                 color: iconBg,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.palette_outlined, size: 15, color: AppColors.muted),
+              child: const Icon(
+                Icons.palette_outlined,
+                size: 15,
+                color: AppColors.muted,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
                 'Tema',
-                style: GoogleFonts.dmSans(
-                  fontSize: 13, fontWeight: FontWeight.w300, color: textColor,
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w300,
+                  color: textColor,
                 ),
               ),
             ),
             Text(
               currentLabel,
-              style: GoogleFonts.dmSans(
-                fontSize: 12, fontWeight: FontWeight.w400, color: mutedColor,
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+                color: mutedColor,
               ),
             ),
             const SizedBox(width: 6),
-            Icon(Icons.arrow_forward_ios, size: 12, color: mutedColor.withAlpha(128)),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 12,
+              color: mutedColor.withAlpha(128),
+            ),
           ],
         ),
       ),
