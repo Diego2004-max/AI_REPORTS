@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:reportes_ai/app/theme/app_colors.dart';
 
-// FIX: renamed from ReportStatus to ReportStatusLabels — avoids conflict with enum ReportStatus in shared_widgets.dart
 abstract final class ReportStatusLabels {
   static const String pending = 'Pendiente';
   static const String submitted = 'Enviado';

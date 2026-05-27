@@ -47,7 +47,6 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // FIX: intercept Android system back-press to show exit confirmation dialog
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {

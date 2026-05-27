@@ -42,7 +42,6 @@ class _CreateWrittenReportScreenState
   String? _descriptionErrorText;
   AiClassification? _aiResult;
 
-  // FIX: category and severity start empty — populated automatically by AI analysis
   String _selectedCategory = '';
   String _selectedSeverity = '';
 
@@ -274,7 +273,6 @@ class _CreateWrittenReportScreenState
       if (!mounted) return;
       setState(() {
         _aiResult = result;
-        // FIX: always pre-fill both fields from AI — no confidence threshold required
         _selectedCategory = result.suggestedCategory;
         _selectedSeverity = result.suggestedSeverity;
       });
@@ -288,7 +286,6 @@ class _CreateWrittenReportScreenState
     }
   }
 
-  // FIX: bottom sheet so user can override the AI-assigned category
   Future<void> _showCategoryEditSheet() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -380,7 +377,6 @@ class _CreateWrittenReportScreenState
     );
   }
 
-  // FIX: bottom sheet so user can override the AI-assigned severity
   Future<void> _showSeverityEditSheet() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -600,7 +596,6 @@ class _CreateWrittenReportScreenState
     final scaffoldBg = theme.scaffoldBackgroundColor;
     final isDark = theme.brightness == Brightness.dark;
     final primaryTone = isDark ? AppColors.primaryLight : AppColors.primary;
-    // FIX: submit disabled until AI analysis has classified the report
     final canSubmit =
         _aiResult != null &&
         _selectedCategory.isNotEmpty &&
@@ -640,7 +635,6 @@ class _CreateWrittenReportScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // FIX 1 — paso 1: Descripción + botón "Analizar con IA"
               AppCard(
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -776,8 +770,6 @@ class _CreateWrittenReportScreenState
               ),
               const SizedBox(height: 16),
 
-              // FIX 1 — paso 2: AiClassificationCard (categoría + severidad pre-llenadas, editables)
-              // FIX 5: siempre accepted=true porque los valores se auto-aplican al correr el análisis
               if (_aiResult != null) ...[
                 AiClassificationCard(
                   classification: _aiResult!,
@@ -789,12 +781,10 @@ class _CreateWrittenReportScreenState
                 const SizedBox(height: 24),
               ],
 
-              // FIX 1 — paso 3: Ubicación (informativa, auto-capturada)
               AppCard(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    // FIX 2: GoogleMap miniatura dinámica — reemplaza NetworkImage hardcodeada
                     Container(
                       height: 160,
                       width: double.infinity,
@@ -977,7 +967,6 @@ class _CreateWrittenReportScreenState
               ),
               const SizedBox(height: 24),
 
-              // FIX 1 — paso 4: Foto (opcional)
               AppCard(
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -1078,7 +1067,6 @@ class _CreateWrittenReportScreenState
               ),
               const SizedBox(height: 32),
 
-              // FIX 1 — paso 5: Enviar (deshabilitado hasta que IA clasifique)
               VialButton(
                 onPressed: canSubmit ? _submitReport : null,
                 text: canSubmit

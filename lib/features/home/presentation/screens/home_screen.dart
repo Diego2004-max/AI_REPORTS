@@ -90,7 +90,6 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
                     const Spacer(),
-                    // FIX: Tooltip + Semantics for accessibility; context.push for named route (Fix 9+10)
                     Tooltip(
                       message: 'Ver notificaciones',
                       child: Semantics(
@@ -120,7 +119,6 @@ class HomeScreen extends ConsumerWidget {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
                     child: statsAsync.when(
-                      // FIX: show placeholder containers matching StatPill layout during load
                       loading: () {
                         final placeholderColor = isDark
                             ? AppColors.darkSurface
@@ -143,7 +141,6 @@ class HomeScreen extends ConsumerWidget {
                           ],
                         );
                       },
-                      // FIX: mensaje amigable con botón de reintento en lugar de excepción cruda
                       error: (e, _) => Column(
                         children: [
                           Text(
@@ -190,7 +187,6 @@ class HomeScreen extends ConsumerWidget {
                           const SizedBox(height: 28),
                           const SectionHeader(title: 'Recientes'),
                           recentAsync.when(
-                            // FIX: show centered indicator while recent reports load
                             loading: () => const SizedBox(
                               height: 120,
                               child: Center(child: CircularProgressIndicator()),
