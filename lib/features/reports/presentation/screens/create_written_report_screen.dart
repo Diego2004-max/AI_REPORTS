@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -12,6 +11,7 @@ import 'package:reportes_ai/core/services/ai_service.dart';
 import 'package:reportes_ai/core/services/location_service.dart';
 import 'package:reportes_ai/core/utils/validators.dart';
 import 'package:reportes_ai/data/models/ai_classification.dart';
+import 'package:reportes_ai/features/reports/presentation/screens/location_picker_screen.dart';
 import 'package:reportes_ai/shared/widgets/ai_classification_card.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 import 'package:reportes_ai/state/session_provider.dart';
@@ -46,7 +46,7 @@ class _CreateWrittenReportScreenState
   String _selectedCategory = '';
   String _selectedSeverity = '';
 
-  Position? _currentPosition;
+  LatLng? _reportLatLng;
   String? _locationLabel;
 
   String? _imagePath;
@@ -118,7 +118,7 @@ class _CreateWrittenReportScreenState
       if (!mounted) return;
 
       setState(() {
-        _currentPosition = position;
+        _reportLatLng = LatLng(position.latitude, position.longitude);
         _locationLabel =
             address ??
             'Lat ${position.latitude.toStringAsFixed(5)}, Lng ${position.longitude.toStringAsFixed(5)}';
@@ -134,6 +134,23 @@ class _CreateWrittenReportScreenState
         setState(() => _isGettingLocation = false);
       }
     }
+  }
+
+  Future<void> _openLocationPicker() async {
+    final result = await Navigator.push<LocationPickerResult>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LocationPickerScreen(
+          initialLatitude: _reportLatLng?.latitude,
+          initialLongitude: _reportLatLng?.longitude,
+        ),
+      ),
+    );
+    if (!mounted || result == null) return;
+    setState(() {
+      _reportLatLng = LatLng(result.latitude, result.longitude);
+      _locationLabel = result.label;
+    });
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -465,7 +482,7 @@ class _CreateWrittenReportScreenState
       return;
     }
 
-    if (_currentPosition == null) {
+    if (_reportLatLng == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Debes capturar la ubicación del reporte'),
@@ -518,8 +535,8 @@ class _CreateWrittenReportScreenState
           credibilityScore = await _aiService.getCredibilityScore(
             userId: userId,
             description: description,
-            latitude: _currentPosition!.latitude,
-            longitude: _currentPosition!.longitude,
+            latitude: _reportLatLng!.latitude,
+            longitude: _reportLatLng!.longitude,
           );
           priorityScore = await _aiService.getPriorityScore(
             classification: aiResult,
@@ -547,8 +564,8 @@ class _CreateWrittenReportScreenState
             category: finalCategory,
             severity: finalSeverity,
             locationLabel: _locationLabel,
-            latitude: _currentPosition?.latitude,
-            longitude: _currentPosition?.longitude,
+            latitude: _reportLatLng?.latitude,
+            longitude: _reportLatLng?.longitude,
             imagePaths: _imagePath != null ? [_imagePath!] : const [],
             aiCategory: aiResult?.rawAiCategory.isNotEmpty == true
                 ? aiResult!.rawAiCategory
@@ -790,14 +807,11 @@ class _CreateWrittenReportScreenState
                         borderRadius: BorderRadius.circular(12),
                         child: _isGettingLocation
                             ? const Center(child: CircularProgressIndicator())
-                            : _currentPosition != null
+                            : _reportLatLng != null
                             ? AbsorbPointer(
                                 child: GoogleMap(
                                   initialCameraPosition: CameraPosition(
-                                    target: LatLng(
-                                      _currentPosition!.latitude,
-                                      _currentPosition!.longitude,
-                                    ),
+                                    target: _reportLatLng!,
                                     zoom: 15,
                                   ),
                                   markers: {
@@ -805,10 +819,7 @@ class _CreateWrittenReportScreenState
                                       markerId: const MarkerId(
                                         'report_location',
                                       ),
-                                      position: LatLng(
-                                        _currentPosition!.latitude,
-                                        _currentPosition!.longitude,
-                                      ),
+                                      position: _reportLatLng!,
                                     ),
                                   },
                                   zoomControlsEnabled: false,
@@ -873,7 +884,7 @@ class _CreateWrittenReportScreenState
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'UBICACIÓN ACTUAL',
+                                  'UBICACIÓN DEL REPORTE',
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
@@ -891,7 +902,8 @@ class _CreateWrittenReportScreenState
                                         ),
                                       )
                                     : Text(
-                                        _locationLabel ?? 'Buscando...',
+                                        _locationLabel ??
+                                            'Sin ubicación — toca Cambiar',
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w600,
@@ -903,14 +915,59 @@ class _CreateWrittenReportScreenState
                               ],
                             ),
                           ),
-                          TextButton(
-                            onPressed: _isGettingLocation
-                                ? null
-                                : _loadCurrentLocation,
-                            child: Text(
-                              'Actualizar',
-                              style: TextStyle(color: primaryTone),
-                            ),
+                          // GPS quick-refresh (small icon) + full picker
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_isGettingLocation)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                  ),
+                                  child: SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: primaryTone,
+                                    ),
+                                  ),
+                                )
+                              else
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.gps_fixed_rounded,
+                                    size: 17,
+                                    color: primaryTone,
+                                  ),
+                                  tooltip: 'Usar mi ubicación GPS',
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(
+                                    minWidth: 32,
+                                    minHeight: 32,
+                                  ),
+                                  onPressed: _loadCurrentLocation,
+                                ),
+                              TextButton(
+                                onPressed: _openLocationPicker,
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                  ),
+                                  minimumSize: const Size(0, 32),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  'Cambiar',
+                                  style: TextStyle(
+                                    color: primaryTone,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
