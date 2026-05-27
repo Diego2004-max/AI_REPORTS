@@ -26,7 +26,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
         : ref.watch(userAnalyticsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const CustomAppBar(
         title: 'Estadísticas',
         subtitle: 'Análisis de reportes',
@@ -61,13 +61,14 @@ class _ScopeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.screenH, vertical: AppSpacing.md),
       child: Container(
         height: 44,
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLow,
+          color: isDark ? AppColors.darkSurface : AppColors.surfaceContainerLow,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -90,6 +91,12 @@ class _Tab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeColor = isDark ? AppColors.darkSurfaceVariant : AppColors.surfaceContainerLowest;
+    final activeText = isDark ? AppColors.darkTextPrimary : AppColors.primary;
+    final inactiveText = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+    final shadowColor = isDark ? Colors.black38 : AppColors.shadow;
+
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -97,10 +104,10 @@ class _Tab extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           margin: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: active ? AppColors.surfaceContainerLowest : Colors.transparent,
+            color: active ? activeColor : Colors.transparent,
             borderRadius: BorderRadius.circular(9),
             boxShadow: active
-                ? [BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: const Offset(0, 2))]
+                ? [BoxShadow(color: shadowColor, blurRadius: 8, offset: const Offset(0, 2))]
                 : [],
           ),
           child: Center(
@@ -109,7 +116,7 @@ class _Tab extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                color: active ? AppColors.primary : AppColors.textSecondary,
+                color: active ? activeText : inactiveText,
               ),
             ),
           ),
@@ -181,6 +188,9 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final labelColor = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+
     return Expanded(
       child: AppCard(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
@@ -197,7 +207,7 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 11, color: labelColor),
               textAlign: TextAlign.center,
             ),
           ],
@@ -217,6 +227,9 @@ class _BarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -241,7 +254,7 @@ class _BarChart extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color: isToday ? AppColors.primary : AppColors.textSecondary,
+                              color: isToday ? AppColors.primary : textSecondary,
                             ),
                           ),
                         const SizedBox(height: 4),
@@ -275,7 +288,7 @@ class _BarChart extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: isToday ? FontWeight.w700 : FontWeight.w400,
-                    color: isToday ? AppColors.primary : AppColors.textSecondary,
+                    color: isToday ? AppColors.primary : textSecondary,
                   ),
                 ),
               );
@@ -302,13 +315,18 @@ class _CategoryBreakdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+    final progressBg = isDark ? AppColors.darkSurfaceVariant : AppColors.surfaceContainerHigh;
+
     if (categories.isEmpty) {
-      return const AppCard(
+      return AppCard(
         child: Padding(
-          padding: EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Center(
             child: Text('Sin datos de categorías aún',
-                style: TextStyle(color: AppColors.textSecondary)),
+                style: TextStyle(color: textSecondary)),
           ),
         ),
       );
@@ -337,13 +355,13 @@ class _CategoryBreakdown extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(stat.category,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 13, fontWeight: FontWeight.w500,
-                              color: AppColors.textPrimary)),
+                              color: textPrimary)),
                     ),
                     Text(
                       '${stat.count}  ${(pct * 100).toStringAsFixed(0)}%',
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(fontSize: 12, color: textSecondary),
                     ),
                   ],
                 ),
@@ -353,7 +371,7 @@ class _CategoryBreakdown extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: pct,
                     minHeight: 6,
-                    backgroundColor: AppColors.surfaceContainerHigh,
+                    backgroundColor: progressBg,
                     valueColor: AlwaysStoppedAnimation<Color>(color),
                   ),
                 ),
@@ -375,6 +393,10 @@ class _HighlightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
@@ -393,15 +415,15 @@ class _HighlightCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Categoría más reportada',
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text('Categoría más reportada',
+                    style: TextStyle(fontSize: 12, color: textSecondary)),
                 const SizedBox(height: 2),
                 Text(
                   summary.mostActiveCategory,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary),
+                      color: textPrimary),
                 ),
               ],
             ),
@@ -428,11 +450,12 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text(
       title,
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
           ),
     );
   }
