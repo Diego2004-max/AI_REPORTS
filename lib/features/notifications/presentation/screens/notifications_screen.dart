@@ -20,7 +20,6 @@ class NotificationsScreen extends ConsumerWidget {
         ? AppColors.darkTextSecondary
         : AppColors.textSecondary;
     final faintColor = isDark ? AppColors.darkTextDisabled : AppColors.faint;
-
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: AppBackground(
@@ -32,15 +31,14 @@ class NotificationsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
                 child: Row(
                   children: [
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).maybePop(),
-                      child: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 18,
-                        color: textPrimary,
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                      color: textPrimary,
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         'Notificaciones',
