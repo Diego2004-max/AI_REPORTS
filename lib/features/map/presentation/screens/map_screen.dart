@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'package:reportes_ai/app/theme/app_colors.dart';
 import 'package:reportes_ai/app/theme/app_spacing.dart';
 import 'package:reportes_ai/core/services/location_service.dart';
+import 'package:reportes_ai/data/models/report_model.dart';
 import 'package:reportes_ai/shared/widgets/app_card.dart';
 import 'package:reportes_ai/state/report_provider.dart';
 
@@ -21,17 +23,24 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   final LocationService _locationService = LocationService();
 
   static const LatLng _initialPosition = LatLng(1.2136, -77.2811);
+  static const List<String> _severityKeys = ['leve', 'moderado', 'critico'];
+  static const List<String> _categoryKeys = [
+    'accidente',
+    'derrumbe',
+    'semaforo',
+    'via_bloqueada',
+    'otra',
+  ];
 
   bool _isLoadingLocation = false;
   bool _locationEnabled = false;
 
-  // Cached custom marker icons per severity level
-  final Map<String, BitmapDescriptor> _severityMarkers = {};
+  final Map<String, BitmapDescriptor> _reportMarkers = {};
 
   @override
   void initState() {
     super.initState();
-    _initSeverityMarkers();
+    _initReportMarkers();
   }
 
   @override
@@ -40,158 +49,218 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     super.dispose();
   }
 
-  // ── Severity marker icon generation ─────────────────────────────────────────
-
-  Future<void> _initSeverityMarkers() async {
+  Future<void> _initReportMarkers() async {
     try {
-      final results = await Future.wait([
-        _buildSeverityMarker('leve', const Color(0xFF34C989)),
-        _buildSeverityMarker('moderado', const Color(0xFFDC963C)),
-        _buildSeverityMarker('critico', const Color(0xFFE05555)),
-        _buildSeverityMarker('default', const Color(0xFF2B4BFF)),
-      ]);
+      final futures = <String, Future<BitmapDescriptor>>{};
+
+      for (final severity in _severityKeys) {
+        for (final category in _categoryKeys) {
+          futures[_markerCacheKey(severity, category)] = _buildReportMarker(
+            color: _severityColor(severity),
+            icon: _categoryIconForKey(category),
+          );
+        }
+      }
+
+      final entries = await Future.wait(
+        futures.entries.map(
+          (entry) async => MapEntry(entry.key, await entry.value),
+        ),
+      );
+
       if (!mounted) return;
       setState(() {
-        _severityMarkers['leve'] = results[0];
-        _severityMarkers['moderado'] = results[1];
-        _severityMarkers['critico'] = results[2];
-        _severityMarkers['default'] = results[3];
+        _reportMarkers
+          ..clear()
+          ..addEntries(entries);
       });
     } catch (_) {
-      // Silently fall back to default Google Maps pin if generation fails.
+      // If canvas generation fails, markers fall back to compact amber pins.
     }
   }
 
-  /// Draws a circular pin icon whose interior symbol communicates severity.
-  ///
-  /// • Leve     (green)  — checkmark ✓
-  /// • Moderado (orange) — warning triangle ▲
-  /// • Crítico  (red)    — exclamation mark !
-  /// • Default  (blue)   — info dot •
-  static Future<BitmapDescriptor> _buildSeverityMarker(
-      String key, Color color) async {
-    const double size = 64.0;
-    const double cx = size / 2;
-    const double cy = size / 2;
-    const double r = size / 2 - 3;
+  static String _markerCacheKey(String severity, String category) {
+    return '$severity:$category';
+  }
+
+  static Future<BitmapDescriptor> _buildReportMarker({
+    required Color color,
+    required IconData icon,
+  }) async {
+    const double size = 42;
+    const double center = size / 2;
+    const double radius = 17;
 
     final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, size, size));
+    final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, size, size));
 
-    // Drop shadow
     canvas.drawCircle(
-      Offset(cx + 1.5, cy + 2.5),
-      r,
+      const Offset(center, center + 2),
+      radius,
       Paint()
         ..color = Colors.black.withValues(alpha: 0.22)
-        ..maskFilter =
-            const ui.MaskFilter.blur(ui.BlurStyle.normal, 5),
+        ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 3.5),
     );
 
-    // Filled circle
-    canvas.drawCircle(Offset(cx, cy), r, Paint()..color = color);
-
-    // White border ring
     canvas.drawCircle(
-      Offset(cx, cy),
-      r,
+      const Offset(center, center),
+      radius,
+      Paint()..color = color,
+    );
+    canvas.drawCircle(
+      const Offset(center, center),
+      radius,
       Paint()
         ..color = Colors.white
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 3.0,
+        ..strokeWidth = 2,
     );
-
-    // Inner semi-transparent circle
     canvas.drawCircle(
-      Offset(cx, cy),
-      r * 0.56,
-      Paint()..color = Colors.white.withValues(alpha: 0.20),
+      const Offset(center, center),
+      radius * 0.58,
+      Paint()..color = Colors.white.withValues(alpha: 0.14),
     );
 
-    // ── Icon ──────────────────────────────────────────────────────────────────
-    final linePaint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 3.0
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
+    final iconPainter = TextPainter(
+      text: TextSpan(
+        text: String.fromCharCode(icon.codePoint),
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontFamily: icon.fontFamily,
+          package: icon.fontPackage,
+          height: 1,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
 
-    switch (key) {
-      case 'leve':
-        // Checkmark ✓
-        canvas.drawLine(
-            Offset(cx - 8, cy + 1), Offset(cx - 2, cy + 7), linePaint);
-        canvas.drawLine(
-            Offset(cx - 2, cy + 7), Offset(cx + 9, cy - 5), linePaint);
-        break;
-
-      case 'moderado':
-        // Warning triangle ▲ (outline)
-        final triPath = Path()
-          ..moveTo(cx, cy - 9)
-          ..lineTo(cx + 9, cy + 7)
-          ..lineTo(cx - 9, cy + 7)
-          ..close();
-        canvas.drawPath(triPath, linePaint);
-        // Dot inside triangle
-        canvas.drawCircle(
-          Offset(cx, cy + 3.5),
-          2.0,
-          Paint()..color = Colors.white,
-        );
-        break;
-
-      case 'critico':
-        // Exclamation mark !
-        canvas.drawLine(Offset(cx, cy - 9), Offset(cx, cy + 1), linePaint);
-        canvas.drawCircle(
-          Offset(cx, cy + 6.5),
-          2.5,
-          Paint()..color = Colors.white,
-        );
-        break;
-
-      default:
-        // Info dot •
-        canvas.drawLine(Offset(cx, cy - 5), Offset(cx, cy + 5), linePaint);
-        canvas.drawCircle(
-          Offset(cx, cy - 9),
-          2.0,
-          Paint()..color = Colors.white,
-        );
-        break;
-    }
+    iconPainter.paint(
+      canvas,
+      Offset(center - iconPainter.width / 2, center - iconPainter.height / 2),
+    );
 
     final picture = recorder.endRecording();
     final image = await picture.toImage(size.toInt(), size.toInt());
-    final byteData =
-        await image.toByteData(format: ui.ImageByteFormat.png);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
 
-    return BitmapDescriptor.bytes(
-        byteData!.buffer.asUint8List());
+    return BitmapDescriptor.bytes(byteData!.buffer.asUint8List());
   }
 
-  BitmapDescriptor _markerForSeverity(String? severity) {
-    if (_severityMarkers.isEmpty) return BitmapDescriptor.defaultMarker;
-    final key = _normalizeSeverity(severity);
-    return _severityMarkers[key] ?? _severityMarkers['default']!;
+  BitmapDescriptor _markerForReport(ReportModel report) {
+    final severity = _resolveReportSeverity(report);
+    final category = _categoryKey(report.category);
+    final markerKey = _markerCacheKey(severity, category);
+    final fallbackKey = _markerCacheKey(severity, 'otra');
+
+    return _reportMarkers[markerKey] ??
+        _reportMarkers[fallbackKey] ??
+        BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
   }
 
-  static String _normalizeSeverity(String? raw) {
-    switch ((raw ?? '').toLowerCase().trim()) {
-      case 'leve':
-        return 'leve';
-      case 'moderado':
-        return 'moderado';
-      case 'crítico':
-      case 'critico':
-      case 'grave':
-        return 'critico';
-      default:
-        return 'default';
+  static String _resolveReportSeverity(ReportModel report) {
+    final rawSeverity = report.severity?.trim();
+    if (rawSeverity != null && rawSeverity.isNotEmpty) {
+      return _normalizeSeverity(rawSeverity);
     }
+
+    for (final source in [report.title, report.description, report.status]) {
+      final severity = _tryNormalizeSeverity(source);
+      if (severity != null) return severity;
+    }
+
+    return 'moderado';
   }
 
-  // ── Map helpers ──────────────────────────────────────────────────────────────
+  static String _normalizeSeverity(String value) {
+    return _tryNormalizeSeverity(value) ?? 'moderado';
+  }
+
+  static String? _tryNormalizeSeverity(String value) {
+    final text = _foldSeverity(value);
+    if (text.contains('critico') ||
+        text.contains('grave') ||
+        text.contains('alta') ||
+        text.contains('alto')) {
+      return 'critico';
+    }
+    if (text.contains('leve') ||
+        text.contains('baja') ||
+        text.contains('bajo')) {
+      return 'leve';
+    }
+    if (text.contains('moderado') ||
+        text.contains('media') ||
+        text.contains('medio')) {
+      return 'moderado';
+    }
+    return null;
+  }
+
+  static String _foldSeverity(String value) {
+    return value
+        .toLowerCase()
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('Ã¡', 'a')
+        .replaceAll('Ã©', 'e')
+        .replaceAll('Ã­', 'i')
+        .replaceAll('Ã³', 'o')
+        .replaceAll('Ãº', 'u');
+  }
+
+  static Color _severityColor(String severity) {
+    return switch (severity) {
+      'leve' => AppColors.success,
+      'critico' => AppColors.error,
+      _ => AppColors.warning,
+    };
+  }
+
+  static String _severityLabel(String severity) {
+    return switch (severity) {
+      'leve' => 'Leve',
+      'critico' => 'Crítico',
+      _ => 'Moderado',
+    };
+  }
+
+  static String _categoryKey(String category) {
+    final value = category.toLowerCase();
+    if (value.contains('accidente') ||
+        value.contains('choque') ||
+        value.contains('colisión') ||
+        value.contains('colision')) {
+      return 'accidente';
+    }
+    if (value.contains('derrumbe') ||
+        value.contains('deslizamiento') ||
+        value.contains('talud')) {
+      return 'derrumbe';
+    }
+    if (value.contains('semáforo') || value.contains('semaforo')) {
+      return 'semaforo';
+    }
+    if (value.contains('vía bloqueada') ||
+        value.contains('via bloqueada') ||
+        value.contains('bloque')) {
+      return 'via_bloqueada';
+    }
+    return 'otra';
+  }
+
+  static IconData _categoryIconForKey(String categoryKey) {
+    return switch (categoryKey) {
+      'accidente' => Icons.directions_car_filled_rounded,
+      'derrumbe' => Icons.terrain_rounded,
+      'semaforo' => Icons.traffic_rounded,
+      'via_bloqueada' => Icons.block_rounded,
+      _ => Icons.report_problem_rounded,
+    };
+  }
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
@@ -224,8 +293,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
   }
 
-  // ── Build ────────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     final reportsAsync = ref.watch(allReportsProvider);
@@ -240,20 +307,19 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               .where((r) => r.latitude != null && r.longitude != null)
               .toList();
 
-          final markers = reportsWithCoords
-              .map(
-                (report) => Marker(
-                  markerId: MarkerId(report.id),
-                  position: LatLng(report.latitude!, report.longitude!),
-                  icon: _markerForSeverity(report.severity),
-                  infoWindow: InfoWindow(
-                    title: report.title,
-                    snippet:
-                        '${report.category} · ${report.severity ?? report.status}',
-                  ),
-                ),
-              )
-              .toSet();
+          final markers = reportsWithCoords.map((report) {
+            final severity = _resolveReportSeverity(report);
+
+            return Marker(
+              markerId: MarkerId(report.id),
+              position: LatLng(report.latitude!, report.longitude!),
+              icon: _markerForReport(report),
+              infoWindow: InfoWindow(
+                title: report.title,
+                snippet: '${report.category} · ${_severityLabel(severity)}',
+              ),
+            );
+          }).toSet();
 
           return Stack(
             children: [
@@ -294,8 +360,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           children: [
                             Text(
                               'Mapa de reportes',
-                              style:
-                                  Theme.of(context).textTheme.titleMedium,
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -316,7 +381,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 width: 18,
                                 height: 18,
                                 child: CircularProgressIndicator(
-                                    strokeWidth: 2),
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(Icons.my_location_rounded),
                       ),
@@ -324,17 +390,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   ),
                 ),
               ),
-              // Legend
-              if (_severityMarkers.isNotEmpty)
-                Positioned(
-                  bottom: AppSpacing.xl,
-                  left: AppSpacing.screenH,
-                  child: _SeverityLegend(
-                    leve: _severityMarkers['leve']!,
-                    moderado: _severityMarkers['moderado']!,
-                    critico: _severityMarkers['critico']!,
-                  ),
-                ),
+              Positioned(
+                bottom: AppSpacing.bottomNavHeight + AppSpacing.xl,
+                left: AppSpacing.screenH,
+                child: const _SeverityLegend(),
+              ),
             ],
           );
         },
@@ -343,38 +403,31 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 }
 
-// ── Severity legend ───────────────────────────────────────────────────────────
-
 class _SeverityLegend extends StatelessWidget {
-  final BitmapDescriptor leve;
-  final BitmapDescriptor moderado;
-  final BitmapDescriptor critico;
-
-  const _SeverityLegend({
-    required this.leve,
-    required this.moderado,
-    required this.critico,
-  });
+  const _SeverityLegend();
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final bg = isDark
-        ? const Color(0xFF252B40).withValues(alpha: 0.95)
-        : Colors.white.withValues(alpha: 0.95);
-    final textColor =
-        isDark ? const Color(0xFFF0F2FA) : const Color(0xFF1C2033);
+        ? AppColors.darkSurface.withValues(alpha: 0.95)
+        : AppColors.surface.withValues(alpha: 0.95);
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.text;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.border;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 8,
-              offset: const Offset(0, 2)),
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
@@ -382,19 +435,22 @@ class _SeverityLegend extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _LegendItem(
-              color: const Color(0xFF34C989),
-              label: 'Leve',
-              textColor: textColor),
+            color: AppColors.success,
+            label: 'Leve',
+            textColor: textColor,
+          ),
           const SizedBox(height: 6),
           _LegendItem(
-              color: const Color(0xFFDC963C),
-              label: 'Moderado',
-              textColor: textColor),
+            color: AppColors.warning,
+            label: 'Moderado',
+            textColor: textColor,
+          ),
           const SizedBox(height: 6),
           _LegendItem(
-              color: const Color(0xFFE05555),
-              label: 'Crítico',
-              textColor: textColor),
+            color: AppColors.error,
+            label: 'Crítico',
+            textColor: textColor,
+          ),
         ],
       ),
     );
@@ -402,14 +458,15 @@ class _SeverityLegend extends StatelessWidget {
 }
 
 class _LegendItem extends StatelessWidget {
+  const _LegendItem({
+    required this.color,
+    required this.label,
+    required this.textColor,
+  });
+
   final Color color;
   final String label;
   final Color textColor;
-
-  const _LegendItem(
-      {required this.color,
-      required this.label,
-      required this.textColor});
 
   @override
   Widget build(BuildContext context) {
@@ -419,16 +476,14 @@ class _LegendItem extends StatelessWidget {
         Container(
           width: 10,
           height: 10,
-          decoration:
-              BoxDecoration(color: color, shape: BoxShape.circle),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 11,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: textColor,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
